@@ -176,6 +176,11 @@ JNI_H_DECL(ds_h_asset_open) {
   const uint32_t data = as ? data_offset(as) : 0;
   if (!data)
     return jv_l(not_found("open", name));
+  static int said;
+  if (said < 400) { /* bring-up: what the engine loads, in order */
+    said++;
+    debugPrintf("[assets] open(%s): %u bytes\n", name, (unsigned)as->size);
+  }
   Stream *s = calloc(1, sizeof *s);
   if (!s)
     return jv_l(NULL);

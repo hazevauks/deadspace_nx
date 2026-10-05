@@ -5,9 +5,10 @@ Port of **Dead Space 1.2.0** (`com.eamobile.deadspace_full_azn`, versionCode
 [android32](https://github.com/aks796/android32) runtime (submodule at
 `runtime/`, commit `50b352c`).
 
-State: **first draft, never run.** It builds in GitHub Actions; nothing has
-been tested on hardware yet. Every "unverified" below is a guess to settle
-with the first `debug.log`.
+State: **boots on hardware up to the engine's own start** (setup, loader,
+constructors, `JNI_OnLoad`, EGL / GLES 1 context, `EAIO.Startup`); the game
+itself has not drawn yet. Every "unverified" below is a guess to settle with
+the next `debug.log`.
 
 ## The game
 
@@ -28,17 +29,30 @@ apply here; its approach to the controls does.
 ## Boot sequence (from classes.dex)
 
 1. `System.loadLibrary("DeadSpace")` → 208 constructors, `JNI_OnLoad`
-2. `MainActivity.onCreate` → `NativeOnCreate()`; the engine calls back
-   `MainActivity.GetInstance().getAssets()` and `EAIO.Startup(AssetManager)`
-   (a native reached through Java)
+2. `MainActivity.onCreate` → `NativeOnCreate()` (`EA::Blast::PreInit`)
 3. `AndroidEAAudioCore.Startup()` → `Init(AudioTrack, bufferBytes, channels, rate)`
-4. `onResume` → `NativeOnResume()`
-5. GL thread: `NativeOnSurfaceCreated()`, `NativeOnSurfaceChanged(w, h)`, then
-   `NativeOnDrawFrame()` per frame
-6. `onWindowFocusChanged` → `NativeOnWindowFocusChanged(bool)`
+4. GL thread: `NativeOnSurfaceChanged(w, h)`, then `NativeOnDrawFrame()` per
+   frame, which is `EA::Blast::Loop()`
+5. `onWindowFocusChanged` → `NativeOnWindowFocusChanged(bool)`
+
+`EA::Blast::Loop()` has a state: 0 = not started, 1 = running, 2 = exited.
+The first call runs `SystemAndroid::Init` (which calls back
+`EAIO.Startup(AssetManager)` through Java) and sets 1; later calls send
+message `0xE` to the message dispatcher and pump it. **Every lifecycle native
+except `NativeOnSurfaceChanged` returns at once unless the state is 1**, so
+what a phone sends before the first frame (`NativeOnResume`,
+`NativeOnSurfaceCreated`) is lost, and the game starts on the focus event
+that follows the first frame. Sending the focus before it leaves the loop
+spinning with nothing to do (the first hardware run: 80 000 empty frames a
+second).
+
+Lifecycle messages (`dispatcher->vtbl[8](id, ...)`): `0x80006` resume,
+`0x20006` focus gained, `0x40006` pause / focus lost, `0x60006` stop,
+`0x60005` surface created, `5` surface size.
 
 Tools: `perl tools/dexinfo.pl <classes.dex> '<class regex>' [native|code]`,
-`perl tools/elfinfo.pl <lib>`.
+`perl tools/elfinfo.pl <lib>`, `perl tools/armdis.pl <lib> <hex offset> <hex
+length>` (ARM-mode disassembly with names from `.symtab`).
 
 ## Decisions
 

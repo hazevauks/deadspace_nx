@@ -41,11 +41,9 @@ static const struct {
 } k_natives[] = {
 #define NAT(field, sym, req) {sym, offsetof(DsNatives, field), req}
     NAT(OnCreate, BLAST "MainActivity_NativeOnCreate", 1),
-    NAT(OnResume, BLAST "MainActivity_NativeOnResume", 1),
     NAT(OnPause, BLAST "MainActivity_NativeOnPause", 1),
     NAT(OnStop, BLAST "MainActivity_NativeOnStop", 0),
     NAT(OnWindowFocusChanged, BLAST "MainActivity_NativeOnWindowFocusChanged", 1),
-    NAT(OnSurfaceCreated, BLAST "AndroidRenderer_NativeOnSurfaceCreated", 1),
     NAT(OnSurfaceChanged, BLAST "AndroidRenderer_NativeOnSurfaceChanged", 1),
     NAT(OnDrawFrame, BLAST "AndroidRenderer_NativeOnDrawFrame", 1),
     NAT(OnKeyDown, BLAST "KeyboardAndroid_NativeOnKeyDown", 1),

@@ -19,12 +19,10 @@ extern so_module g_mod_game;
 typedef struct {
   /* com.ea.blast.MainActivity */
   void (*OnCreate)(void *env, void *self);
-  void (*OnResume)(void *env, void *self);
   void (*OnPause)(void *env, void *self);
   void (*OnStop)(void *env, void *self);
   void (*OnWindowFocusChanged)(void *env, void *self, jboolean focus);
   /* com.ea.blast.AndroidRenderer */
-  void (*OnSurfaceCreated)(void *env, void *self);
   void (*OnSurfaceChanged)(void *env, void *self, jint width, jint height);
   void (*OnDrawFrame)(void *env, void *self);
   /* com.ea.blast.KeyboardAndroid */

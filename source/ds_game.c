@@ -9,14 +9,14 @@
  *   DeadSpaceActivity         AndroidEAAudioCore.Startup() (ds_audio.c); the
  *                             Amazon licence check and the asset downloader,
  *                             neither of which exists here
- *   Activity.onResume         NativeOnResume()
  *   AndroidView               an EGL context: OpenGL ES 1, RGB, depth (here:
  *                             libnx's default window, through the shared
  *                             EGL layer, gl_mesa.c)
- *   AndroidRenderer           on the GL thread: NativeOnSurfaceCreated(),
- *                             NativeOnSurfaceChanged(width, height), then
- *                             NativeOnDrawFrame() for every frame
- *   onWindowFocusChanged      NativeOnWindowFocusChanged(focus): here for
+ *   AndroidRenderer           on the GL thread: NativeOnSurfaceChanged(width,
+ *                             height), then NativeOnDrawFrame() for every
+ *                             frame; the first one starts the engine
+ *   onWindowFocusChanged      NativeOnWindowFocusChanged(focus): what starts
+ *                             the game, after the first frame; here for
  *                             HOME and sleep too (see "lifecycle" below)
  *   Activity.onPause, onStop  NativeOnPause(), NativeOnStop(): here when the
  *                             game closes
@@ -184,20 +184,23 @@ int ds_game_run(void) {
   dcr_watchdog_start();
   rt_watchdog_add_counter("audio blocks", ds_audio_blocks);
 
-  /* ---- the UI thread: onCreate, onResume ---- */
+  /* ---- onCreate, the surface, the first frame ----
+   * The engine's system starts inside the FIRST NativeOnDrawFrame
+   * (EA::Blast::Loop: SystemAndroid::Init), and until then every lifecycle
+   * native but NativeOnSurfaceChanged returns at once: the resume and the
+   * surface's creation are lost on a phone too. What starts the game is the
+   * window's focus arriving after that frame (the "resume" and "focus
+   * gained" messages), as it does on Android. */
   debugPrintf("[game] MainActivity.NativeOnCreate\n");
   g_n.OnCreate(ENV, SELF);
   ds_audio_start();
-  debugPrintf("[game] MainActivity.NativeOnResume\n");
-  g_n.OnResume(ENV, SELF);
-  ds_input_init();
-
-  /* ---- the GL thread: the surface ---- */
-  debugPrintf("[game] AndroidRenderer.NativeOnSurfaceCreated\n");
-  g_n.OnSurfaceCreated(ENV, SELF);
   debugPrintf("[game] AndroidRenderer.NativeOnSurfaceChanged(%d, %d)\n", g_w, g_h);
   g_n.OnSurfaceChanged(ENV, SELF, g_w, g_h);
+  debugPrintf("[game] the first NativeOnDrawFrame: the engine's system starts\n");
+  g_n.OnDrawFrame(ENV, SELF);
+  debugPrintf("[game] MainActivity.NativeOnWindowFocusChanged(true)\n");
   g_n.OnWindowFocusChanged(ENV, SELF, 1);
+  ds_input_init();
   g_engine_up = 1;
   debugPrintf("[game] the engine is up\n");
   log_flush_ring();
