@@ -1,0 +1,3 @@
+[submodule "runtime"]
+	path = runtime
+	url = https://github.com/aks796/android32.git

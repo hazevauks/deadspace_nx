@@ -1,0 +1,89 @@
+# Builds deadspace_nx.nsp (the 32-bit program) and, when launcher/icon.jpg
+# exists, deadspace_nx.nro (the launcher that carries it), with the android32
+# runtime's own build scripts in their toolchain containers.
+#
+# No game file is part of this: the libraries below are the Switch side's
+# (libnx32, Mesa), and the import table is made from symbol names only
+# (tools/imports_needed.txt).
+name: build
+
+on:
+  push:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      # The release archives' layout is not assumed: each library's folder is
+      # found by a file it must hold.
+      - name: libnx32 (release)
+        run: |
+          mkdir -p "$RUNNER_TEMP/libnx32"
+          gh release download --repo aks796/libnx32 --pattern 'libnx32.zip' --dir "$RUNNER_TEMP"
+          unzip -q "$RUNNER_TEMP/libnx32.zip" -d "$RUNNER_TEMP/libnx32"
+          lib="$(find "$RUNNER_TEMP/libnx32" -path '*/lib/libnx.a' | head -n 1)"
+          [ -n "$lib" ] || { echo "no lib/libnx.a in libnx32.zip"; find "$RUNNER_TEMP/libnx32" | head -n 40; exit 1; }
+          prefix="$(dirname "$(dirname "$lib")")"
+          [ -f "$prefix/include/switch.h" ] || { echo "no include/switch.h next to $lib"; exit 1; }
+          echo "DCR_LIBNX32=$prefix" >> "$GITHUB_ENV"
+          echo "libnx32 at $prefix"
+
+      - name: mesa32 (release)
+        run: |
+          mkdir -p "$RUNNER_TEMP/mesa32"
+          gh release download --repo aks796/mesa32 --pattern 'mesa32.zip' --dir "$RUNNER_TEMP"
+          unzip -q "$RUNNER_TEMP/mesa32.zip" -d "$RUNNER_TEMP/mesa32"
+          lib="$(find "$RUNNER_TEMP/mesa32" -path '*/lib/libEGL.a' | head -n 1)"
+          [ -n "$lib" ] || { echo "no lib/libEGL.a in mesa32.zip"; find "$RUNNER_TEMP/mesa32" | head -n 40; exit 1; }
+          prefix="$(dirname "$(dirname "$lib")")"
+          mkdir -p portlibs32
+          cp -R "$prefix/lib" "$prefix/include" portlibs32/
+          ls portlibs32/lib
+
+      - name: the import table (source/imports.c)
+        run: python3 runtime/tools/gen_imports.py
+
+      # The toolchain container does not run as the runner's user: it must be
+      # able to write build/ and the outputs into the checkout.
+      - name: let the containers write into the checkout
+        run: chmod -R a+rwX "$GITHUB_WORKSPACE"
+
+      - name: the 32-bit program (deadspace_nx.nsp)
+        run: sh ./build.sh
+
+      - name: the launcher (deadspace_nx.nro)
+        if: ${{ hashFiles('launcher/icon.jpg') != '' }}
+        run: sh launcher/build.sh
+
+      # What a player copies to the SD card's root: the NRO in its folder.
+      - name: the SD card layout
+        if: ${{ hashFiles('launcher/deadspace_nx.nro') != '' }}
+        run: |
+          mkdir -p SD_CARD/switch/deadspace_nx
+          cp launcher/deadspace_nx.nro SD_CARD/switch/deadspace_nx/
+
+      - uses: actions/upload-artifact@v4
+        if: ${{ hashFiles('SD_CARD/switch/deadspace_nx/deadspace_nx.nro') != '' }}
+        with:
+          name: deadspace_nx_sd
+          path: SD_CARD/
+
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: deadspace_nx
+          if-no-files-found: warn
+          path: |
+            deadspace_nx.nsp
+            deadspace_nx.build
+            launcher/deadspace_nx.nro
+            source/imports.c
+            build/deadspace_nx.map

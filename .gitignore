@@ -1,0 +1,27 @@
+# no game files, ever: the player supplies their own APK
+*.apk
+*.obb
+/Dead Space/
+# reference checkouts of other ports, for reading only
+/_refs/
+# the Mesa build and libnx32 (downloaded or built, not kept here)
+/portlibs32/
+/libnx32/
+# build outputs
+/build/
+/source/imports.c
+/SD_CARD/
+/SD_CARD.zip
+*.elf
+*.nsp
+*.nso
+*.npdm
+*.nacp
+*.nro
+*.build
+/launcher/build/
+/launcher/romfs/
+# logs from a console (they carry the console's install id): not shared
+/debug/
+debug.log
+crash.log
