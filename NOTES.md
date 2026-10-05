@@ -5,10 +5,10 @@ Port of **Dead Space 1.2.0** (`com.eamobile.deadspace_full_azn`, versionCode
 [android32](https://github.com/aks796/android32) runtime (submodule at
 `runtime/`, commit `50b352c`).
 
-State: **boots on hardware up to the engine's own start** (setup, loader,
-constructors, `JNI_OnLoad`, EGL / GLES 1 context, `EAIO.Startup`); the game
-itself has not drawn yet. Every "unverified" below is a guess to settle with
-the next `debug.log`.
+State: **playable on hardware.** The game starts, loads its first level and
+runs at 60 fps at 720p (handheld, stock clocks) with sound; the left stick
+moved the player in the first test. The buttons and the right stick (below)
+are written and not yet tested.
 
 ## The game
 
@@ -72,24 +72,57 @@ length>` (ARM-mode disassembly with names from `.symtab`).
 - **Data stays in the APK.** The first start rewrites the APK with `assets/`
   stored (`store_apk_prefix`), then `AssetManager.open` is an offset into it
   through the runtime's block cache. No 328 MB copy on the SD card.
-- **The engine is told it runs on an Xperia Play (R800i).** That is the one
-  phone with a gamepad the game supports (`KeyboardAndroidXperiaPlay`,
-  `TouchPadAndroidXperiaPlay`), which gives real button actions.
-- **Sticks** as in the Vita port: the left one is a finger dragged on the
-  screen, the right one a fresh drag on the Xperia touch pad every frame.
+- **Buttons call the game.** This build has no gamepad support (its key
+  handler knows Back and Menu only; the Xperia Play touch pad module is
+  compiled out), but `Hud::doSpecialAction(action, param)`, where the Xperia
+  Play build sent its buttons, is still there. The port calls it by address
+  (`source/ds_engine.c`, checked against the build's instructions first).
+- **Sticks are fingers.** The left one is a finger dragged from a fixed
+  point (the Vita port's way); the right one a finger on the right half that
+  moves at the stick's rate.
 - **Sound** at audout's 48 kHz: `AudioTrack.write` goes straight to audout.
 
-## Unverified (check in the first logs)
+## The game's actions
 
-- That this build's Xperia Play code switches on for model `R800i`.
-- `AndroidEAAudioCore.Init`'s integer order (buffer bytes, channels, rate),
-  taken from the Vita port.
-- Whether `OES_matrix_palette` is really used (skinned models): Mesa does not
-  have it. The GL extension string is logged at start-up.
-- Texture formats inside the `.m3g` files (PVRTC / ATC / ETC would need
-  decoding in software).
-- `sbrk` is refused, `androidGetTmpRoot` / `androidGetExternalRoot` answer
-  paths: each logs when called.
+`Hud::doSpecialAction(int action, int param)` at `0x7541c`; the HUD is
+`GameObject::getHud()` (`0x21cb2c`), valid while `Application::getInstance()`
+(`0x207ee8`) has a world (`+204`) with a player (`+88`) in a state above 1
+(`+0x16a0`): the checks `Application::OnKeyDown` makes. Actions are
+`0x352fb91 + n`:
+
+| n | action |
+| --- | --- |
+| 0 | pause (`BTN_PLAY_PAUSE`), or the RIG |
+| 1 | the RIG (`BTN_RIG`) |
+| 2, 3 | previous / next weapon (which is which: untested) |
+| 4 | locator |
+| 5 | melee |
+| 6 | reload |
+| 7 | aim: param 0 pressed, -1 released (honours the aim-toggle setting) |
+| 8 | fire while aiming, else melee |
+| 9 | stasis while aiming, else the quick turn |
+| 10 | throw with kinesis, else a tap in the middle of the screen (interact) |
+| 11, 12 | menu events (`BTN_UPGRADE`, `BTN_NO`) |
+| 14 | zero-gravity jump |
+| 15 | the weapon's other mode, while aiming |
+
+Most become an `ActionEvent` (type `0x3f0`) for `GameObjectPlayable::onEvent`:
+6 fire, 7 alternate fire, 8 quick turn, 9 aim, 10 reload, 11 stasis, 12 jump,
+13 stomp, 14 slash.
+
+## Settled by the hardware runs
+
+- `sbrk` refused: the engine's allocator goes on to `mmap` (16 MB blocks).
+- `AndroidEAAudioCore.Init(track, bytes, channels, rate)`: sound plays at 48 kHz.
+- `OES_matrix_palette` is not used with Mesa's extension list, and the
+  textures load: no GL error is logged.
+
+## Open
+
+- The JNI core counts 17 000 live Java objects after a level loads: the
+  engine does not delete its local references (a JVM frees them when a
+  native returns). About 1 MB; it grows slowly while playing.
+- Menus are touch only: there is no button navigation in this build.
 - Where saves go (`GetAppDataDirectory` answers `/data/data/<package>/files`,
   which the runtime maps to `data/` in the game folder).
 - `Java_com_ea_EAThread_EAThread_Init` and `rwfilesystem.Startup` are not
@@ -97,10 +130,8 @@ length>` (ARM-mode disassembly with names from `.symtab`).
 
 ## Roadmap
 
-1. Boot to the first frame on hardware; fix what the log shows.
-2. Menus and a level: textures, skinning, sound.
-3. Controls: tune the sticks; the accelerometer gestures (tilt = alternate
-   fire, shake = zero-G jump) on buttons and on the controller's motion
-   sensor; gyroscope aiming; rumble.
-4. Performance at stock clocks; 1080p docked.
-5. Other builds of the game (Google Play, Xperia Play), the console's language.
+1. Controls: test and tune the buttons and the right stick; a pointer for the
+   menus (docked play); gyroscope aiming; rumble.
+2. A full play-through: saves, later levels, the store and DLC screens.
+3. Performance at stock clocks; 1080p docked.
+4. Other builds of the game (Google Play, Xperia Play), the console's language.

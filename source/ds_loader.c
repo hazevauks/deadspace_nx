@@ -48,7 +48,6 @@ static const struct {
     NAT(OnDrawFrame, BLAST "AndroidRenderer_NativeOnDrawFrame", 1),
     NAT(OnKeyDown, BLAST "KeyboardAndroid_NativeOnKeyDown", 1),
     NAT(OnKeyUp, BLAST "KeyboardAndroid_NativeOnKeyUp", 1),
-    NAT(OnVisibilityChanged, BLAST "KeyboardAndroid_NativeOnVisibilityChanged", 0),
     NAT(OnPointerEvent, BLAST "TouchSurfaceAndroid_NativeOnPointerEvent", 1),
     NAT(OnAcceleration, BLAST "AccelerometerAndroidDelegate_NativeOnAcceleration", 0),
     NAT(IoStartup, "Java_com_ea_EAIO_EAIO_Startup", 1),

@@ -9,11 +9,10 @@
  * a handler is answered with its type's zero and logged once (jni_core.c):
  * that log is the to-do list.
  *
- * The phone the engine is told about is a Sony Ericsson Xperia Play (R800i):
- * the one phone with a gamepad the game knows (EA::Blast's
- * KeyboardAndroidXperiaPlay and TouchPadAndroidXperiaPlay), so that its
- * buttons and the two touch pads' sticks work as the game's own controls
- * (ds_input.c). MIT.
+ * The phone the engine is told about is a Sony Ericsson Xperia Play (R800i),
+ * a phone of the game's own time. (This build has none of the Xperia Play's
+ * gamepad support: the controller is ds_input.c's and ds_engine.c's work.)
+ * MIT.
  */
 #include <string.h>
 

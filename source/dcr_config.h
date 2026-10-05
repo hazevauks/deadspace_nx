@@ -11,6 +11,7 @@ typedef struct {
   int boot_log;     /* [debug] boot_log_on_screen */
   int log_jni;      /* [debug] log_java_calls */
   int log_input;    /* [debug] log_input */
+  float look;       /* [controls] look_sensitivity */
 } DcrConfig;
 
 /* Read config.ini (writing it with the defaults, or adding missing options,

@@ -36,17 +36,18 @@ To remove it, delete `sd:/switch/deadspace_nx/` and the folder under
 | --- | --- |
 | Left stick | move |
 | Right stick | look, aim |
-| L / ZL | aim |
-| R / ZR | fire |
-| B | interact |
-| A | kinesis |
+| L / ZL (hold) | aim |
+| R / ZR | fire while aiming; melee otherwise |
+| B | interact, kinesis (again: throw); back in the menus |
+| A | the weapon's other mode, while aiming |
 | Y | reload |
 | X | quick turn; stasis while aiming |
+| Right stick click | jump, in zero gravity |
 | D-pad left / right | previous / next weapon |
-| D-pad up / down | plasma saw / locator |
-| + | menu |
-| − | show the HUD |
-| Touch screen | as on a phone (handheld) |
+| D-pad up / down | melee / locator |
+| + | pause |
+| − | the RIG (inventory) |
+| Touch screen | as on a phone (handheld); the menus are touch only for now |
 
 ## Settings
 

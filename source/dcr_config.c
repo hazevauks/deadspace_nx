@@ -19,14 +19,15 @@ static DcrConfig g_cfg = {
     .res_w = 1280,
     .res_h = 720,
     .boost = 1,
+    .look = 1.0f,
 };
 
 const DcrConfig *dcr_config(void) { return &g_cfg; }
 
 static const CfgOpt k_opts[] = {
     CFG_ROW_SWAP_AB("Swap A and B. false: the buttons work by where they are, as on the\n"
-                    "# game's own pad: B (bottom) interacts, A (right) is kinesis, Y (left)\n"
-                    "# reloads, X (top) is the quick turn and stasis.",
+                    "# game's own pad: B (bottom) interacts, A (right) is the weapon's other\n"
+                    "# mode, Y (left) reloads, X (top) is the quick turn and stasis.",
                     &g_cfg.swap_ab),
     {"touch", "enabled", "true", "The touch screen works as on the phone (handheld mode).", CFG_BOOL,
      NULL, &g_cfg.touch},
@@ -43,6 +44,9 @@ static const CfgOpt k_opts[] = {
     {"debug", "log_input", "false",
      "Write every key and touch the game receives to debug.log (for bug reports).", CFG_BOOL, NULL,
      &g_cfg.log_input},
+    {"controls", "look_sensitivity", "1.0",
+     "How fast the right stick turns the camera: 0.25 (slow) to 4 (fast).", CFG_FLOAT, NULL,
+     &g_cfg.look, 0.25f, 4.0f},
     /* [config] version = 1: the engine's row, last (CfgTable.version) */
 };
 

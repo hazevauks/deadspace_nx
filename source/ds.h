@@ -28,7 +28,6 @@ typedef struct {
   /* com.ea.blast.KeyboardAndroid */
   void (*OnKeyDown)(void *env, void *self, jint module, jint key, jint alt);
   void (*OnKeyUp)(void *env, void *self, jint module, jint key, jint alt);
-  void (*OnVisibilityChanged)(void *env, void *self, jint module, jboolean visible);
   /* com.ea.blast.TouchSurfaceAndroid, AccelerometerAndroidDelegate */
   void (*OnPointerEvent)(void *env, void *cls, jint event, jint module, jint pointer, jfloat x, jfloat y);
   void (*OnAcceleration)(void *env, void *self, jfloat x, jfloat y, jfloat z);
@@ -54,6 +53,28 @@ extern DsIds g_ids;
 /* ds_loader.c */
 int ds_load_engine(void);       /* 0, or negative (logged) */
 void ds_run_constructors(void); /* System.loadLibrary: the init array, JNI_OnLoad */
+
+/* ds_engine.c: the game's own functions, by address (one build of it) */
+/* Hud::doSpecialAction's actions. Its param is 0, but for DS_ACT_AIM: 0 the
+ * button pressed, -1 let go. */
+enum DsAction {
+  DS_ACT_PAUSE = 0x352fb91, /* pause; the RIG where there is nothing to pause */
+  DS_ACT_RIG,               /* the inventory */
+  DS_ACT_WEAPON_PREV,
+  DS_ACT_WEAPON_NEXT,
+  DS_ACT_LOCATOR,
+  DS_ACT_MELEE,
+  DS_ACT_RELOAD,
+  DS_ACT_AIM,
+  DS_ACT_FIRE,        /* aiming: fire; else melee */
+  DS_ACT_TURN_STASIS, /* aiming: stasis; else the quick turn */
+  DS_ACT_INTERACT,    /* what is in front: a door, an item, kinesis (again: throw) */
+  DS_ACT_JUMP = 0x352fb9f, /* zero gravity */
+  DS_ACT_ALT_FIRE,         /* aiming: the weapon's other mode */
+};
+int ds_engine_init(void);  /* 1: the library is the build the addresses are for */
+void *ds_engine_hud(void); /* the HUD while a level is played, else NULL */
+void ds_engine_action(void *hud, int action, int param);
 
 /* ds_java.c */
 extern JObj *g_activity; /* com.ea.blast.MainActivity.instance */
