@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="icon.jpg" alt="Dead Space: Sabotage" width="160">
+<img src="banner.webp" alt="Dead Space: Sabotage" width="640">
 
 # deadspace_nx
 
