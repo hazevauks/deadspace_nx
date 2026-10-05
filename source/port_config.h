@@ -36,5 +36,6 @@
 
 /* ------------------------------------------------------------------ input */
 #define RT_PAD_MAX_PLAYERS 1
+#define RT_GL_BLIT 1 /* the pointer over the menus (ds_cursor.c) */
 
 #endif

@@ -8,6 +8,9 @@
  * directly, on the game's thread, between two frames -- where the engine's
  * own message queue would have delivered a key.
  *
+ * ds_engine_look turns the camera the same way: what the touch screen's look
+ * pad would send the player, without a finger.
+ *
  * None of these functions is exported, so they are found by their place in
  * libDeadSpace.so 1.2.0 (names from its .symtab, tools/armdis.pl), and only
  * after the instructions there are checked to be that build's. With another
@@ -29,6 +32,12 @@
 #define APP_WORLD 204
 #define WORLD_PLAYER 88
 #define WORLD_STATE 0x16a0
+/* Hud: its state, its world; that world's player, as Hud::doSpecialAction
+ * reads them */
+#define HUD_STATE 664
+#define HUD_WORLD 4
+#define WORLD_HUD_PLAYER 212
+#define OFF_VECTOR2_VTABLE 0x4794b8 /* vtable for Vector2Event */
 
 /* What is at a few addresses in the build these are for. */
 static const struct {
@@ -64,7 +73,33 @@ void *ds_engine_hud(void) {
   return ((void *(*)(const void *))AT(OFF_OBJECT_HUD))(player);
 }
 
+int ds_engine_hud_state(const void *hud) { return hud ? *(const int *)((const uint8_t *)hud + HUD_STATE) : -1; }
+
 void ds_engine_action(void *hud, int action, int param) {
   if (hud)
     ((void (*)(void *, int, int))AT(OFF_HUD_ACTION))(hud, action, param);
+}
+
+/* What the touch screen's "look" pad (an InputForwarderTouchDPad of
+ * InputSchemeDPadsRel) sends the player for a finger that moved: a
+ * Vector2Event, type 0x3ee, with the pad's number and the pixels moved.
+ * GameObjectPlayable::onEvent turns them into adjustYaw / adjustPitch, by
+ * the game's own sensitivity setting. Pad 3 is the camera; pad 5 takes its
+ * place in one state of the player, and each is ignored in the other's. */
+void ds_engine_look(void *hud, float dx, float dy) {
+  struct {
+    const void *vtable;
+    int type, pad;
+    float x, y;
+    int flag;
+  } ev = {(const void *)(AT(OFF_VECTOR2_VTABLE) + 8), 0x3ee, 3, dx, dy, 0};
+  if (!hud)
+    return;
+  void **player = *(void ***)(*(uint8_t **)((uint8_t *)hud + HUD_WORLD) + WORLD_HUD_PLAYER);
+  if (!player)
+    return;
+  int (*on_event)(void *, const void *) = ((int (**)(void *, const void *))*player)[2];
+  on_event(player, &ev);
+  ev.pad = 5;
+  on_event(player, &ev);
 }

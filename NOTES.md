@@ -6,9 +6,10 @@ Port of **Dead Space 1.2.0** (`com.eamobile.deadspace_full_azn`, versionCode
 `runtime/`, commit `50b352c`).
 
 State: **playable on hardware.** The game starts, loads its first level and
-runs at 60 fps at 720p (handheld, stock clocks) with sound; the left stick
-moved the player in the first test. The buttons and the right stick (below)
-are written and not yet tested.
+runs at 60 fps at 720p (handheld, stock clocks) with sound. Moving, aiming,
+firing, stasis / quick turn, melee and the locator were confirmed on a
+controller; the camera on the right stick, interacting and the menus'
+pointer are written and not yet tested.
 
 ## The game
 
@@ -77,9 +78,17 @@ length>` (ARM-mode disassembly with names from `.symtab`).
   compiled out), but `Hud::doSpecialAction(action, param)`, where the Xperia
   Play build sent its buttons, is still there. The port calls it by address
   (`source/ds_engine.c`, checked against the build's instructions first).
-- **Sticks are fingers.** The left one is a finger dragged from a fixed
-  point (the Vita port's way); the right one a finger on the right half that
-  moves at the stick's rate.
+- **The left stick is a finger** dragged from a fixed point (the Vita port's
+  way). **The right stick is not:** a finger that ends a drag is a tap, and a
+  tap fires or presses a menu button (the second controller test). It sends
+  the player what the touch "look" pad sends: a `Vector2Event` (vtable
+  `0x4794b8`, type `0x3ee`, pad 3; pad 5 in one player state) with the pixels
+  a finger would have moved, which `GameObjectPlayable::onEvent` turns into
+  `adjustYaw` / `adjustPitch` by the game's sensitivity setting.
+- **Menus get a pointer.** They have no selection a D-pad could move, so the
+  sticks move a pointer drawn over the frame (`ds_cursor.c`, on the runtime's
+  `gl_blit`) and B is a finger under it. The HUD's state (`+664`: 0 playing,
+  1 the RIG, 2 and up paused) says which of the two the controller drives.
 - **Sound** at audout's 48 kHz: `AudioTrack.write` goes straight to audout.
 
 ## The game's actions
@@ -101,8 +110,9 @@ length>` (ARM-mode disassembly with names from `.symtab`).
 | 7 | aim: param 0 pressed, -1 released (honours the aim-toggle setting) |
 | 8 | fire while aiming, else melee |
 | 9 | stasis while aiming, else the quick turn |
-| 10 | throw with kinesis, else a tap in the middle of the screen (interact) |
-| 11, 12 | menu events (`BTN_UPGRADE`, `BTN_NO`) |
+| 10 | kinesis: throw what is held, else take what is near the middle of the screen |
+| 11 | accept: a menu's `BTN_UPGRADE` / `BTN_PURCHASE` / `BTN_OK` / `BTN_YES` if one takes it; else struggle when grabbed, else interact with what is near the middle of the screen (doors, items) |
+| 12 | cancel: a menu's `BTN_NO` / `BTN_BACK` if one takes it; else as 0 |
 | 14 | zero-gravity jump |
 | 15 | the weapon's other mode, while aiming |
 
@@ -122,7 +132,6 @@ Most become an `ActionEvent` (type `0x3f0`) for `GameObjectPlayable::onEvent`:
 - The JNI core counts 17 000 live Java objects after a level loads: the
   engine does not delete its local references (a JVM frees them when a
   native returns). About 1 MB; it grows slowly while playing.
-- Menus are touch only: there is no button navigation in this build.
 - Where saves go (`GetAppDataDirectory` answers `/data/data/<package>/files`,
   which the runtime maps to `data/` in the game folder).
 - `Java_com_ea_EAThread_EAThread_Init` and `rwfilesystem.Startup` are not
@@ -130,8 +139,8 @@ Most become an `ActionEvent` (type `0x3f0`) for `GameObjectPlayable::onEvent`:
 
 ## Roadmap
 
-1. Controls: test and tune the buttons and the right stick; a pointer for the
-   menus (docked play); gyroscope aiming; rumble.
+1. Controls: test and tune the camera and the pointer; gyroscope aiming;
+   rumble.
 2. A full play-through: saves, later levels, the store and DLC screens.
 3. Performance at stock clocks; 1080p docked.
 4. Other builds of the game (Google Play, Xperia Play), the console's language.

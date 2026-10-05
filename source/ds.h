@@ -68,13 +68,20 @@ enum DsAction {
   DS_ACT_AIM,
   DS_ACT_FIRE,        /* aiming: fire; else melee */
   DS_ACT_TURN_STASIS, /* aiming: stasis; else the quick turn */
-  DS_ACT_INTERACT,    /* what is in front: a door, an item, kinesis (again: throw) */
+  DS_ACT_KINESIS,     /* take what is in front with kinesis; again: throw it */
+  DS_ACT_ACCEPT,      /* a door, an item, a struggle; in a menu its yes / OK / buy button */
+  DS_ACT_CANCEL,      /* in a menu its no / back button; else pause */
   DS_ACT_JUMP = 0x352fb9f, /* zero gravity */
   DS_ACT_ALT_FIRE,         /* aiming: the weapon's other mode */
 };
 int ds_engine_init(void);  /* 1: the library is the build the addresses are for */
-void *ds_engine_hud(void); /* the HUD while a level is played, else NULL */
+void *ds_engine_hud(void); /* the HUD while a level is loaded, else NULL */
+/* 0 while the level is being played; else the RIG, the pause menu, the
+ * store... are on the screen (Hud::isPaused, Hud::isInRig) */
+int ds_engine_hud_state(const void *hud);
 void ds_engine_action(void *hud, int action, int param);
+/* The camera turned as a finger dragged dx, dy pixels on the screen would. */
+void ds_engine_look(void *hud, float dx, float dy);
 
 /* ds_java.c */
 extern JObj *g_activity; /* com.ea.blast.MainActivity.instance */

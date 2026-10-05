@@ -37,9 +37,10 @@ To remove it, delete `sd:/switch/deadspace_nx/` and the folder under
 | Left stick | move |
 | Right stick | look, aim |
 | L / ZL (hold) | aim |
-| R / ZR | fire while aiming; melee otherwise |
-| B | interact, kinesis (again: throw); back in the menus |
-| A | the weapon's other mode, while aiming |
+| ZR | fire while aiming; melee otherwise |
+| R | the weapon's other mode, while aiming |
+| B | interact (doors, items), confirm |
+| A | kinesis (again: throw) |
 | Y | reload |
 | X | quick turn; stasis while aiming |
 | Right stick click | jump, in zero gravity |
@@ -47,7 +48,11 @@ To remove it, delete `sd:/switch/deadspace_nx/` and the folder under
 | D-pad up / down | melee / locator |
 | + | pause |
 | − | the RIG (inventory) |
-| Touch screen | as on a phone (handheld); the menus are touch only for now |
+| Touch screen | as on a phone (handheld) |
+
+In the menus (the title screens, the pause menu, the RIG, the store) the
+sticks and the D-pad move a pointer: **B** touches what is under it, **A**
+goes back.
 
 ## Settings
 

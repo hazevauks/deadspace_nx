@@ -26,8 +26,8 @@ const DcrConfig *dcr_config(void) { return &g_cfg; }
 
 static const CfgOpt k_opts[] = {
     CFG_ROW_SWAP_AB("Swap A and B. false: the buttons work by where they are, as on the\n"
-                    "# game's own pad: B (bottom) interacts, A (right) is the weapon's other\n"
-                    "# mode, Y (left) reloads, X (top) is the quick turn and stasis.",
+                    "# game's own pad: B (bottom) interacts and confirms, A (right) is kinesis\n"
+                    "# and back, Y (left) reloads, X (top) is the quick turn and stasis.",
                     &g_cfg.swap_ab),
     {"touch", "enabled", "true", "The touch screen works as on the phone (handheld mode).", CFG_BOOL,
      NULL, &g_cfg.touch},
