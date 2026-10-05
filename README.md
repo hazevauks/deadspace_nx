@@ -44,6 +44,7 @@ To remove it, delete `sd:/switch/deadspace_nx/` and the folder under
 | Y | reload |
 | X | quick turn; stasis while aiming |
 | Right stick click | jump, in zero gravity |
+| Left stick click | motion aiming on / off |
 | D-pad left / right | previous / next weapon |
 | D-pad up / down | melee / locator |
 | + | pause |
@@ -51,8 +52,14 @@ To remove it, delete `sd:/switch/deadspace_nx/` and the folder under
 | Touch screen | as on a phone (handheld) |
 
 In the menus (the title screens, the pause menu, the RIG, the store) the
-sticks and the D-pad move a pointer: **B** touches what is under it, **A**
+sticks and the D-pad move a pointer: **A** touches what is under it, **B**
 goes back.
+
+Motion aiming turns the camera with the controller's gyroscope (the console's
+own in handheld mode). It is off until the left stick is clicked; a disc at
+the top of the screen says on, a ring off. By default it counts only while
+the aim button is held: `[motion]` in `config.ini` has that, its sensitivity
+and its directions.
 
 ## Settings
 

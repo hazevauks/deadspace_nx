@@ -20,6 +20,8 @@ static DcrConfig g_cfg = {
     .res_h = 720,
     .boost = 1,
     .look = 1.0f,
+    .gyro_aim_only = 1,
+    .gyro_sensitivity = 1.0f,
 };
 
 const DcrConfig *dcr_config(void) { return &g_cfg; }
@@ -47,6 +49,19 @@ static const CfgOpt k_opts[] = {
     {"controls", "look_sensitivity", "1.0",
      "How fast the right stick turns the camera: 0.25 (slow) to 4 (fast).", CFG_FLOAT, NULL,
      &g_cfg.look, 0.25f, 4.0f},
+    {"motion", "enabled", "false",
+     "Motion aiming: turning the controller (or the console, in handheld mode) turns\n"
+     "# the camera. A click of the left stick switches it while playing.",
+     CFG_BOOL, NULL, &g_cfg.gyro},
+    {"motion", "only_while_aiming", "true",
+     "true: the motion counts only while the aim button is held.", CFG_BOOL, NULL,
+     &g_cfg.gyro_aim_only},
+    {"motion", "sensitivity", "1.0", "How far the camera turns for the controller's turn: 0.25 to 4.",
+     CFG_FLOAT, NULL, &g_cfg.gyro_sensitivity, 0.25f, 4.0f},
+    {"motion", "invert_horizontal", "false", "Turn the other way, left and right.", CFG_BOOL, NULL,
+     &g_cfg.gyro_invert_x},
+    {"motion", "invert_vertical", "false", "Turn the other way, up and down.", CFG_BOOL, NULL,
+     &g_cfg.gyro_invert_y},
     /* [config] version = 1: the engine's row, last (CfgTable.version) */
 };
 
@@ -69,3 +84,9 @@ static const CfgTable k_table = {
 };
 
 void dcr_config_load(void) { rt_config_load(&k_table); }
+
+void dcr_config_set_gyro(int on) {
+  g_cfg.gyro = on;
+  rt_config_set("motion", "enabled", on ? "true" : "false");
+  rt_config_save();
+}

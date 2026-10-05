@@ -6,10 +6,11 @@ Port of **Dead Space 1.2.0** (`com.eamobile.deadspace_full_azn`, versionCode
 `runtime/`, commit `50b352c`).
 
 State: **playable on hardware.** The game starts, loads its first level and
-runs at 60 fps at 720p (handheld, stock clocks) with sound. Moving, aiming,
-firing, stasis / quick turn, melee and the locator were confirmed on a
-controller; the camera on the right stick, interacting and the menus'
-pointer are written and not yet tested.
+runs at 60 fps at 720p (handheld, stock clocks) with sound. The controller
+was confirmed on hardware: moving, the camera, aiming, firing, interacting,
+the menus' pointer (weapon change and the zero-gravity jump not yet tried).
+Motion aiming is written and not yet tested; its directions are a guess
+(`[motion] invert_*`).
 
 ## The game
 
@@ -87,7 +88,7 @@ length>` (ARM-mode disassembly with names from `.symtab`).
   `adjustYaw` / `adjustPitch` by the game's sensitivity setting.
 - **Menus get a pointer.** They have no selection a D-pad could move, so the
   sticks move a pointer drawn over the frame (`ds_cursor.c`, on the runtime's
-  `gl_blit`) and B is a finger under it. The HUD's state (`+664`: 0 playing,
+  `gl_blit`) and A is a finger under it, B the way back. The HUD's state (`+664`: 0 playing,
   1 the RIG, 2 and up paused) says which of the two the controller drives.
 - **Sound** at audout's 48 kHz: `AudioTrack.write` goes straight to audout.
 
@@ -139,8 +140,7 @@ Most become an `ActionEvent` (type `0x3f0`) for `GameObjectPlayable::onEvent`:
 
 ## Roadmap
 
-1. Controls: test and tune the camera and the pointer; gyroscope aiming;
-   rumble.
+1. Controls: test motion aiming (directions, sensitivity); rumble.
 2. A full play-through: saves, later levels, the store and DLC screens.
 3. Performance at stock clocks; 1080p docked.
 4. Other builds of the game (Google Play, Xperia Play), the console's language.
