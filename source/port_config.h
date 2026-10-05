@@ -8,10 +8,10 @@
 #define PORT_CONFIG_H
 
 /* ------------------------------------------------------------------ the game */
-#define PORT_TITLE    "Dead Space"
+#define PORT_TITLE    "Dead Space: Sabotage"
 #define PORT_NAME     "deadspace_nx"
 #define PORT_PACKAGE  "com.eamobile.deadspace_full_azn"
-#define PORT_BANNER   "deadspace_nx: Dead Space (EA's EAMCore engine, armeabi)"
+#define PORT_BANNER   "deadspace_nx: Dead Space: Sabotage (EA's EAMCore engine, armeabi)"
 #define PORT_ABI_DIR  "lib/armeabi/"
 /* libDeadSpace.so maps 0x4e19e0 bytes (~5 MB): the runtime's 32 MB default
  * region holds it. */

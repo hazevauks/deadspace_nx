@@ -1,6 +1,8 @@
 # deadspace_nx — port notes
 
-Port of **Dead Space 1.2.0** (`com.eamobile.deadspace_full_azn`, versionCode
+Port of **Dead Space 1.2.0**, the 2011 mobile game, shown on the console as
+*Dead Space: Sabotage* (the name its wiki goes by) to tell it from the 2008
+console game (`com.eamobile.deadspace_full_azn`, versionCode
 1200, the Amazon Appstore build, armeabi) to Nintendo Switch on the
 [android32](https://github.com/aks796/android32) runtime (submodule at
 `runtime/`, commit `50b352c`).

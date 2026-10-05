@@ -1,8 +1,27 @@
+<div align="center">
+
+<img src="icon.jpg" alt="Dead Space: Sabotage" width="160">
+
 # deadspace_nx
 
-**Dead Space (2011, mobile) for Nintendo Switch** — a port of the 32-bit
-Android version, built on the [android32](https://github.com/aks796/android32)
-runtime. Work in progress: see [NOTES.md](NOTES.md) for its state.
+**Dead Space: Sabotage on Nintendo Switch**
+
+An unofficial Nintendo Switch wrapper for the Android version of
+**Dead Space** (2011), the mobile game also known as *Dead Space: Sabotage*.
+
+[![Switch](https://img.shields.io/badge/Nintendo_Switch-Homebrew-E60012?style=for-the-badge&logo=nintendoswitch&logoColor=white)](#)
+[![Version](https://img.shields.io/badge/Version-0.1.0-4C8BF5?style=for-the-badge)](#)
+[![ARM32](https://img.shields.io/badge/Android-armeabi_(32--bit)-3DDC84?style=for-the-badge&logo=android&logoColor=white)](#)
+[![Downloads](https://img.shields.io/github/downloads/hazevauks/deadspace_nx/total?style=for-the-badge&label=Downloads&color=8A2BE2)](https://github.com/hazevauks/deadspace_nx/releases)
+
+</div>
+
+---
+
+The port is called *Dead Space: Sabotage* so that it is not taken for the 2008
+console game: this is the mobile one, by IronMonkey Studios. It is built on
+the [android32](https://github.com/aks796/android32) runtime, and it is a work
+in progress: see [NOTES.md](NOTES.md) for its state.
 
 The port is a wrapper: it loads the game's own code from your APK and gives
 it what it expects from Android. **No game files are included.** You need
@@ -20,7 +39,7 @@ your own copy of the game.
 
 1. Copy `deadspace_nx.nro` to `sd:/switch/deadspace_nx/`.
 2. Copy your APK into the same folder (any file name ending in `.apk`).
-3. In sphaira: **Homebrew › Dead Space › Install Forwarder**.
+3. In sphaira: **Homebrew › Dead Space: Sabotage › Install Forwarder**.
 4. Start the new icon on the HOME menu. The first start prepares the game's
    data inside the APK and unpacks its engine; it takes a few minutes, once.
 
