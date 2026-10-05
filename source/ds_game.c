@@ -15,9 +15,9 @@
  *   AndroidRenderer           on the GL thread: NativeOnSurfaceChanged(width,
  *                             height), then NativeOnDrawFrame() for every
  *                             frame; the first one starts the engine
- *   onWindowFocusChanged      NativeOnWindowFocusChanged(focus): what starts
- *                             the game, after the first frame; here for
- *                             HOME and sleep too (see "lifecycle" below)
+ *   onWindowFocusChanged      NativeOnWindowFocusChanged(focus): after the
+ *                             first frame; here for HOME and sleep too (see
+ *                             "lifecycle" below)
  *   Activity.onPause, onStop  NativeOnPause(), NativeOnStop(): here when the
  *                             game closes
  *
@@ -187,10 +187,9 @@ int ds_game_run(void) {
   /* ---- onCreate, the surface, the first frame ----
    * The engine's system starts inside the FIRST NativeOnDrawFrame
    * (EA::Blast::Loop: SystemAndroid::Init), and until then every lifecycle
-   * native but NativeOnSurfaceChanged returns at once: the resume and the
-   * surface's creation are lost on a phone too. What starts the game is the
-   * window's focus arriving after that frame (the "resume" and "focus
-   * gained" messages), as it does on Android. */
+   * native but NativeOnSurfaceChanged returns at once, so the focus is given
+   * after that frame. The game itself starts in a later frame, once Java
+   * answers Query.isContentReady() with true (ds_java.c). */
   debugPrintf("[game] MainActivity.NativeOnCreate\n");
   g_n.OnCreate(ENV, SELF);
   ds_audio_start();

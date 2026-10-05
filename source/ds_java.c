@@ -30,6 +30,7 @@
 #define AM "android/content/res/AssetManager"
 #define AT "android/media/AudioTrack"
 #define IO "com/ea/EAIO/EAIO"
+#define QY "com/eamobile/Query"
 #define S "Ljava/lang/String;"
 
 #define H(fn) static jvalue fn(JObj *self, const jvalue *a, const JMethod *m)
@@ -98,6 +99,11 @@ H(h_dpi) { return jv_f(245.0f); }
 STR(h_files_dir, DCR_ANDROID_FILES)
 STR(h_external_dir, "/sdcard")
 
+/* ----------------------------------------------------------------- Query */
+/* ActivityManager.MemoryInfo.availMem, in bytes */
+H(h_avail_mem) { return jv_j(512ll << 20); }
+STR(h_version, "1.2.0")
+
 const JMethodDef jni_method_defs[] = {
     {MA, "GetInstance", "()L" MA ";", h_GetInstance},
     {MA, "getAssets", "()L" AM ";", h_getAssets},
@@ -160,8 +166,13 @@ const JMethodDef jni_method_defs[] = {
     {"com/ea/blast/AccelerometerAndroidDelegate", NULL, NULL, jni_h_void},
     {"com/ea/blast/DeviceOrientationHandlerAndroidDelegate", NULL, NULL, jni_h_void},
     {"com/ea/blast/PowerManagerAndroid", NULL, NULL, jni_h_void},
-    /* Query.saveImage: a screenshot to the phone's gallery */
-    {"com/eamobile/Query", NULL, NULL, jni_h_void},
+    /* com.eamobile.Query: every frame the engine asks isContentReady() and
+     * starts the game only once it is true (on the phone: after the licence
+     * check and the asset download); saveImage is a screenshot to the gallery */
+    {QY, "isContentReady", "()Z", jni_h_true},
+    {QY, "getTotalMemory", "()J", h_avail_mem},
+    {QY, "getVersion", "()" S, h_version},
+    {QY, "saveImage", NULL, jni_h_void},
     /* the engine's sound output (ds_audio.c) */
     {AT, "write", "([SII)I", ds_h_track_write},
     {AT, "write", "([BII)I", ds_h_track_write},

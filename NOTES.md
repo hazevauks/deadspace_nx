@@ -37,18 +37,31 @@ apply here; its approach to the controls does.
 
 `EA::Blast::Loop()` has a state: 0 = not started, 1 = running, 2 = exited.
 The first call runs `SystemAndroid::Init` (which calls back
-`EAIO.Startup(AssetManager)` through Java) and sets 1; later calls send
-message `0xE` to the message dispatcher and pump it. **Every lifecycle native
-except `NativeOnSurfaceChanged` returns at once unless the state is 1**, so
-what a phone sends before the first frame (`NativeOnResume`,
-`NativeOnSurfaceCreated`) is lost, and the game starts on the focus event
-that follows the first frame. Sending the focus before it leaves the loop
-spinning with nothing to do (the first hardware run: 80 000 empty frames a
-second).
+`EAIO.Startup(AssetManager)` through Java) and sets 1; later calls post
+message `0xE` to the message server (`EA::Messaging::Server`) and process
+its queue. Every lifecycle native except `NativeOnSurfaceChanged` returns at
+once unless the state is 1.
 
-Lifecycle messages (`dispatcher->vtbl[8](id, ...)`): `0x80006` resume,
-`0x20006` focus gained, `0x40006` pause / focus lost, `0x60006` stop,
-`0x60005` surface created, `5` surface size.
+`0xE` reaches `EA::Blast::UpdateHandler`, which calls the update listeners,
+among them `EA::core::CoreApplication::OnUpdate`. **That function asks Java
+`com.eamobile.Query.isContentReady()` every frame and does nothing until it
+is true**; then it runs `im::System::init()` and creates the game
+(`im::IApplication::getApplication()`). On the phone the Java sets it after
+the licence check and the asset download. Answering false leaves the loop
+spinning with nothing to draw (the first two hardware runs: 80 000 empty
+frames a second, a black screen).
+
+`EA::Blast::LifeCycle` (state at `+48`: 0 new, 6 started, 4 resumed, 5
+focused, 3 paused): `LifeCycle::Init` sends itself the raw start, which goes
+straight to "focused" during `SystemAndroid::Init`, before any listener
+exists. Raw messages, posted by the natives: `0x80006` resume
+(`NativeOnResume`, focus true), `0x20006` focus gained, `0x40006` focus lost
+(`NativeOnPause`, focus false), `0x60006` pause (`NativeOnStop`), `6` exit;
+for the display `0x60005` surface created, `5` surface size.
+
+A lesson for the tables in `ds_java.c`: no catch-all handler on a class
+whose methods are not all known. The one on `Query` answered
+`isContentReady()` with false, silently.
 
 Tools: `perl tools/dexinfo.pl <classes.dex> '<class regex>' [native|code]`,
 `perl tools/elfinfo.pl <lib>`, `perl tools/armdis.pl <lib> <hex offset> <hex
