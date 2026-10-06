@@ -22,8 +22,10 @@ typedef struct {
  * first). Early in main(); the defaults hold until then. */
 void dcr_config_load(void);
 const DcrConfig *dcr_config(void);
-/* [motion] enabled, changed while playing (the left stick's click): written
+/* The settings that are changed while playing (the port's settings screen,
+ * the left stick's click): changed through dcr_config_edit(), then written
  * to config.ini for the next start. */
-void dcr_config_set_gyro(int on);
+DcrConfig *dcr_config_edit(void);
+void dcr_config_save_controls(void);
 
 #endif

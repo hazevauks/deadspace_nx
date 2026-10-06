@@ -1,4 +1,6 @@
-<div align="center">
+| + | pause |
+| − | the RIG (inventory) |
+| + and − together | the port's settings |<div align="center">
 
 <img src="banner.webp" alt="Dead Space: Sabotage" width="640">
 
@@ -10,7 +12,7 @@ An unofficial Nintendo Switch wrapper for the Android version of
 **Dead Space** (2011), the mobile game also known as *Dead Space: Sabotage*.
 
 [![Switch](https://img.shields.io/badge/Nintendo_Switch-Homebrew-E60012?style=for-the-badge&logo=nintendoswitch&logoColor=white)](#)
-[![Version](https://img.shields.io/badge/Version-0.1.0-4C8BF5?style=for-the-badge)](#)
+[![Version](https://img.shields.io/badge/Version-0.2.0-4C8BF5?style=for-the-badge)](#)
 [![ARM32](https://img.shields.io/badge/Android-armeabi_(32--bit)-3DDC84?style=for-the-badge&logo=android&logoColor=white)](#)
 [![Downloads](https://img.shields.io/github/downloads/hazevauks/deadspace_nx/total?style=for-the-badge&label=Downloads&color=8A2BE2)](https://github.com/hazevauks/deadspace_nx/releases)
 
@@ -71,20 +73,26 @@ To remove it, delete `sd:/switch/deadspace_nx/` and the folder under
 | − | the RIG (inventory) |
 | Touch screen | as on a phone (handheld) |
 
-In the menus (the title screens, the pause menu, the RIG, the store) the
+In the menus (the title screens, the pause menu, the RIG, the store, a
+question asked in a level) the
 sticks and the D-pad move a pointer: **A** touches what is under it, **B**
 goes back.
 
 Motion aiming turns the camera with the controller's gyroscope (the console's
 own in handheld mode). It is off until the left stick is clicked; a disc at
 the top of the screen says on, a ring off. By default it counts only while
-the aim button is held: `[motion]` in `config.ini` has that, its sensitivity
-and its directions.
+the aim button is held.
 
 ## Settings
 
-`sd:/switch/deadspace_nx/config.ini` is written on the first start. Each
-option is explained in the file.
+**+ and − pressed together** open the port's settings over the game (a level
+is paused first): the camera's sensitivity, motion aiming on or off, its
+sensitivity, whether it counts only while aiming, and its two directions.
+Up and down choose, left and right change, **B** closes and saves.
+
+The same options, and the others (resolution, swapping A and B, the touch
+screen), are in `sd:/switch/deadspace_nx/config.ini`, written on the first
+start. Each option is explained in the file.
 
 ## Reporting a problem
 

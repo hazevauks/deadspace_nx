@@ -10,7 +10,9 @@ console game (`com.eamobile.deadspace_full_azn`, versionCode
 State: **playable on hardware.** The game starts, loads its first level and
 runs at 60 fps at 720p (handheld, stock clocks) with sound. The controller,
 the menus' pointer and motion aiming were confirmed on hardware, handheld.
-Released as 0.1.0; `docs/release-completion.md` has what is left.
+Released as 0.1.0; `docs/release-completion.md` has what is left and what
+0.2.0 brings (three fixes from players' reports and a settings screen, not
+yet tested on hardware).
 
 ## The game
 
@@ -120,6 +122,36 @@ length>` (ARM-mode disassembly with names from `.symtab`).
 Most become an `ActionEvent` (type `0x3f0`) for `GameObjectPlayable::onEvent`:
 6 fire, 7 alternate fire, 8 quick turn, 9 aim, 10 reload, 11 stasis, 12 jump,
 13 stomp, 14 slash.
+
+## From players' reports (0.1.0)
+
+- **A crash when aiming with the plasma saw** (before the first weapon).
+  `Hud::doSpecialAction` notes "the aim button is held" (`player+494`) before
+  it checks for a weapon, and `GameObjectPlayable::onAnimEnd` then calls
+  `setAiming(player[494])` with no weapon in hand (`player+724[player+744]`
+  is null): a fault at `setAiming+0xd4`. The port no longer sends the aim
+  action without a weapon in hand, as the touch screen has no aim button
+  then.
+- **Static on the protagonist's head in the hallucinations** (second chapter:
+  `DementiaIdentity` swaps the helmet for `carrie_head.m3g`, whose hair is an
+  RGBA texture drawn blended). The textures were decoded and are sound, and
+  no GL error is logged. The likely cause, to be confirmed on hardware: the
+  hallucination's full-screen static (`FSDementiaEffect`) is blended by
+  destination alpha. The game's Java asks for an RGB 565 window, where
+  destination alpha reads 1; the Switch's window is RGBA 8888, so the
+  static would show wherever something translucent had been drawn. The port
+  now keeps the window's alpha at 1 (`ds_gl.c`).
+- **A question in the middle of a level** (a power node lock) could only be
+  answered yes. Such objects take the HUD's input (`Hud::objectGetInput`:
+  `hud+676` becomes 2; also the bench, the store, cinematics); the pointer
+  now comes up for them as it does for the menus.
+
+Texture files (`.m3g`, "MPP-M3G-TXCNV"): the image format is the byte at
+`0x62`, the data follows a 116 or 120 byte header. 100 is RGBA 8888 without
+mipmaps; 116 is ETC1 with a full mipmap chain (110 and 111 would be DXT1, 113
+DXT3, 115 DXT5: `OpenGLES11Renderer::bindImage`; this build's files use 100
+and 116 only). The models (`IM-M3G`) ask for
+mipmapped filtering on every texture.
 
 ## Settled by the hardware runs
 

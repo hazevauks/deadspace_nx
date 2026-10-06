@@ -5,7 +5,7 @@
 #---------------------------------------------------------------------------------
 APP_TITLE    := Dead Space: Sabotage
 APP_AUTHOR   := hazevauks
-APP_VERSION  := 0.1.0
+APP_VERSION  := 0.2.0
 TARGET       := deadspace_nx
 PORT_PAYLOAD := deadspace_nx
 LAUNCHER_SOURCES :=

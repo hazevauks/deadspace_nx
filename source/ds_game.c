@@ -196,6 +196,7 @@ int ds_game_run(void) {
   debugPrintf("[game] AndroidRenderer.NativeOnSurfaceChanged(%d, %d)\n", g_w, g_h);
   g_n.OnSurfaceChanged(ENV, SELF, g_w, g_h);
   debugPrintf("[game] the first NativeOnDrawFrame: the engine's system starts\n");
+  ds_gl_frame_begin();
   g_n.OnDrawFrame(ENV, SELF);
   debugPrintf("[game] MainActivity.NativeOnWindowFocusChanged(true)\n");
   g_n.OnWindowFocusChanged(ENV, SELF, 1);
@@ -215,6 +216,7 @@ int ds_game_run(void) {
       continue;
     }
     ds_input_poll(g_w, g_h);
+    ds_gl_frame_begin(); /* the window's alpha: ds_gl.c */
     g_n.OnDrawFrame(ENV, SELF);
     b_eglSwapBuffers(g_dpy, g_surf);
 

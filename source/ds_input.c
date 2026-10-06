@@ -22,7 +22,8 @@
  * as the console's own menus have them. In a level the buttons go by where
  * they are: B (bottom) interacts, A (right) is kinesis, Y (left) reloads, X
  * (top) is the quick turn, or stasis while aiming. The left stick's click
- * switches motion aiming (ds_gyro.c) on and off. MIT.
+ * switches motion aiming (ds_gyro.c) on and off; + and - together open the
+ * port's own settings (ds_menu.c), which then have the controller. MIT.
  */
 #include <math.h>
 #include <switch.h>
@@ -37,7 +38,9 @@
 
 #define AK_BACK 4 /* android.view.KeyEvent.KEYCODE_BACK */
 
-/* release: the action is called again, with -1, when the button is let go */
+/* release: the action is called again, with -1, when the button is let go.
+ * + and - are not here: they act when let go (poll_pad), as pressed together
+ * they open the port's settings instead. */
 static const struct {
   u64 button;
   int action, release;
@@ -54,8 +57,6 @@ static const struct {
     {HidNpadButton_Right, DS_ACT_WEAPON_NEXT, 0},
     {HidNpadButton_Up, DS_ACT_MELEE, 0},
     {HidNpadButton_Down, DS_ACT_LOCATOR, 0},
-    {HidNpadButton_Plus, DS_ACT_PAUSE, 0},
-    {HidNpadButton_Minus, DS_ACT_RIG, 0},
 };
 #define NBUTTONS (sizeof k_buttons / sizeof k_buttons[0])
 
@@ -85,9 +86,9 @@ static float g_l_x, g_l_y; /* where the left stick's finger is, in pixels */
 static float g_cx, g_cy;   /* the pointer, in pixels; negative: not placed yet */
 static int g_c_down;
 static float g_c_idle = CURSOR_IDLE_S;
-static int g_gyro;       /* motion aiming is on */
-static int g_handheld;   /* the console itself is the controller */
-static u64 g_style;      /* player 1's controller */
+static int g_handheld; /* the console itself is the controller */
+static u64 g_style;    /* player 1's controller */
+static int g_combo;    /* + and - were down together: neither acts when let go */
 static u64 g_last_tick;
 
 /* The screen's fingers down last frame. The engine's pointer ids skip the
@@ -100,12 +101,6 @@ static struct {
   float x, y;
 } g_touch[MAX_TOUCH];
 
-void ds_cursor_init(int width, int height); /* ds_cursor.c */
-void ds_cursor_set(int show, int x, int y);
-void ds_cursor_mark(int on);
-void ds_gyro_init(void); /* ds_gyro.c */
-int ds_gyro_read(int handheld, u64 style, float dt, float *dx, float *dy);
-
 void ds_input_init(void) {
   rt_pad_setup(1, 1);
   rt_pad_slot(&g_pads[0], 0);
@@ -113,10 +108,9 @@ void ds_input_init(void) {
   hidInitializeTouchScreen();
   ds_engine_init();
   ds_gyro_init();
-  g_gyro = dcr_config()->gyro;
   g_cx = g_cy = -1;
   debugPrintf("[input] one player, the touch screen %s, look sensitivity %.2f, motion aiming %s\n",
-              dcr_config()->touch ? "on" : "off", (double)dcr_config()->look, g_gyro ? "on" : "off");
+              dcr_config()->touch ? "on" : "off", (double)dcr_config()->look, dcr_config()->gyro ? "on" : "off");
 }
 
 static void pointer(jint event, int id, float x, float y) {
@@ -185,7 +179,7 @@ static void poll_game(void *hud, u64 down, u64 up, const float st[4], int width,
   }
   float dx = st[2] * LOOK_X * dcr_config()->look * dt, dy = -st[3] * LOOK_Y * dcr_config()->look * dt;
   float gx = 0, gy = 0;
-  if (g_gyro && (!dcr_config()->gyro_aim_only || (g_buttons & (HidNpadButton_L | HidNpadButton_ZL))) &&
+  if (dcr_config()->gyro && (!dcr_config()->gyro_aim_only || (g_buttons & (HidNpadButton_L | HidNpadButton_ZL))) &&
       ds_gyro_read(g_handheld, g_style, dt, &gx, &gy))
     dx += gx, dy += gy;
   if (dx != 0 || dy != 0)
@@ -231,8 +225,6 @@ static void poll_menu(void *hud, u64 buttons, u64 down, u64 up, const float st[4
   if (hud && (down & HidNpadButton_B))
     action(hud, DS_ACT_CANCEL, 0);
   back_key(!hud && (buttons & HidNpadButton_B) != 0);
-  if (hud && (down & HidNpadButton_Plus))
-    action(hud, DS_ACT_PAUSE, 0);
 }
 
 static void poll_pad(int width, int height) {
@@ -262,7 +254,9 @@ static void poll_pad(int width, int height) {
   g_last_tick = tick;
 
   void *hud = ds_engine_hud();
-  const int menu = ds_engine_hud_state(hud) != 0;
+  /* the pointer: no level, a level paused, or one whose input something has
+   * taken (a power node lock asking its question, a bench, a store) */
+  const int menu = ds_engine_hud_state(hud) != 0 || ds_engine_input_taken(hud);
   if (!menu && dcr_config()->swap_ab) { /* in a level only: the menus keep A and B */
     const u64 ab = buttons & (HidNpadButton_A | HidNpadButton_B);
     if (ab == HidNpadButton_A || ab == HidNpadButton_B)
@@ -280,12 +274,50 @@ static void poll_pad(int width, int height) {
       debugPrintf("[input] %s\n", menu ? "a menu: the pointer" : "a level: the game's controls");
   }
   const u64 down = buttons & ~g_buttons, up = g_buttons & ~buttons;
+  const u64 both = HidNpadButton_Plus | HidNpadButton_Minus;
   g_buttons = buttons;
+
+  /* + and - together: the port's settings, over a level that is paused first */
+  if ((buttons & both) == both && (down & both)) {
+    g_combo = 1;
+    if (!ds_menu_is_open()) {
+      if (!menu) {
+        action(hud, DS_ACT_AIM, -1);
+        action(hud, DS_ACT_PAUSE, 0);
+      }
+      left_finger_up();
+      cursor_up();
+      back_key(0);
+    }
+    ds_menu_toggle(width, height);
+  }
+  if (ds_menu_is_open()) { /* the controller is the settings' alone */
+    u64 held = buttons;
+    if (st[1] > 0.5f) held |= HidNpadButton_Up;
+    if (st[1] < -0.5f) held |= HidNpadButton_Down;
+    if (st[0] < -0.5f) held |= HidNpadButton_Left;
+    if (st[0] > 0.5f) held |= HidNpadButton_Right;
+    ds_menu_input(held, dt);
+    ds_cursor_set(0, 0, 0);
+    g_was_menu = -1; /* what is held when it closes does nothing new */
+    return;
+  }
+  /* + pauses and - opens the RIG when let go, unless they were the two that
+   * opened the settings */
+  if (up & both) {
+    if (!g_combo && hud && (up & HidNpadButton_Plus))
+      action(hud, DS_ACT_PAUSE, 0);
+    else if (!g_combo && hud && !menu && (up & HidNpadButton_Minus))
+      action(hud, DS_ACT_RIG, 0);
+    if (!(buttons & both))
+      g_combo = 0;
+  }
   if (down & HidNpadButton_StickL) { /* motion aiming on / off, kept for the next start */
-    g_gyro = !g_gyro;
-    ds_cursor_mark(g_gyro);
-    dcr_config_set_gyro(g_gyro);
-    debugPrintf("[input] motion aiming %s\n", g_gyro ? "on" : "off");
+    DcrConfig *cfg = dcr_config_edit();
+    cfg->gyro = !cfg->gyro;
+    ds_cursor_mark(cfg->gyro);
+    dcr_config_save_controls();
+    debugPrintf("[input] motion aiming %s\n", cfg->gyro ? "on" : "off");
   }
   if (menu)
     poll_menu(hud, buttons, down, up, st, width, height, dt);
@@ -345,7 +377,7 @@ void ds_input_poll(int width, int height) {
     ds_cursor_init(width, height);
   }
   poll_pad(width, height);
-  if (dcr_config()->touch)
+  if (dcr_config()->touch && !ds_menu_is_open())
     poll_touch(width, height);
 }
 

@@ -5,8 +5,11 @@
  * at the end ("# Added by build ..."), [config] version = 1 last. Never
  * rename or reorder an option once players have it: their config.ini files
  * must read the same. Booleans take true/false, yes/no, on/off, 1/0. Read
- * once at start-up: changes apply the next time the game starts. MIT.
+ * once at start-up: an edit of the file applies the next time the game
+ * starts. The settings screen (ds_menu.c) changes the camera's and the
+ * motion's options while playing, and writes them here. MIT.
  */
+#include <stdio.h>
 #include <switch.h>
 
 #include "dcr_config.h"
@@ -85,8 +88,19 @@ static const CfgTable k_table = {
 
 void dcr_config_load(void) { rt_config_load(&k_table); }
 
-void dcr_config_set_gyro(int on) {
-  g_cfg.gyro = on;
-  rt_config_set("motion", "enabled", on ? "true" : "false");
+DcrConfig *dcr_config_edit(void) { return &g_cfg; }
+
+/* What the settings screen and the left stick's click change, written to
+ * config.ini as it stands now. */
+void dcr_config_save_controls(void) {
+  char number[16];
+  snprintf(number, sizeof number, "%.2f", (double)g_cfg.look);
+  rt_config_set("controls", "look_sensitivity", number);
+  snprintf(number, sizeof number, "%.2f", (double)g_cfg.gyro_sensitivity);
+  rt_config_set("motion", "sensitivity", number);
+  rt_config_set("motion", "enabled", g_cfg.gyro ? "true" : "false");
+  rt_config_set("motion", "only_while_aiming", g_cfg.gyro_aim_only ? "true" : "false");
+  rt_config_set("motion", "invert_horizontal", g_cfg.gyro_invert_x ? "true" : "false");
+  rt_config_set("motion", "invert_vertical", g_cfg.gyro_invert_y ? "true" : "false");
   rt_config_save();
 }

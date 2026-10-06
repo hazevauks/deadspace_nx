@@ -35,6 +35,11 @@
 /* Hud: its state, its world; that world's player, as Hud::doSpecialAction
  * reads them */
 #define HUD_STATE 664
+#define HUD_INPUT_STATE 676 /* 2: an object of the level has the input (Hud::objectGetInput) */
+/* GameObjectPlayable: the weapon in hand (an index, and the five weapons' slots),
+ * as getCurrentWeapon() reads them */
+#define PLAYER_WEAPON_INDEX 744
+#define PLAYER_WEAPONS 724
 #define HUD_WORLD 4
 #define WORLD_HUD_PLAYER 212
 #define OFF_VECTOR2_VTABLE 0x4794b8 /* vtable for Vector2Event */
@@ -75,9 +80,32 @@ void *ds_engine_hud(void) {
 
 int ds_engine_hud_state(const void *hud) { return hud ? *(const int *)((const uint8_t *)hud + HUD_STATE) : -1; }
 
+/* A power node lock asking its question, a bench, a store, a cinematic: the
+ * level is loaded and not paused, but what is on the screen is theirs. */
+int ds_engine_input_taken(const void *hud) {
+  return hud && *(const int *)((const uint8_t *)hud + HUD_INPUT_STATE) == 2;
+}
+
+static void **hud_player(void *hud) {
+  return *(void ***)(*(uint8_t **)((uint8_t *)hud + HUD_WORLD) + WORLD_HUD_PLAYER);
+}
+
+/* Aiming with no weapon in hand is refused here, as the game's own aim
+ * button is (it is not on the screen then): doSpecialAction notes that the
+ * button is held before it looks for a weapon, and the end of the next
+ * animation (a swing of the plasma saw, the one tool the player has before
+ * the first weapon) raises a weapon that is not there -- a fault at
+ * GameObjectPlayable::setAiming+0xd4. */
 void ds_engine_action(void *hud, int action, int param) {
-  if (hud)
-    ((void (*)(void *, int, int))AT(OFF_HUD_ACTION))(hud, action, param);
+  if (!hud)
+    return;
+  if (action == DS_ACT_AIM && param != -1) {
+    const uint8_t *player = (const uint8_t *)hud_player(hud);
+    const uint32_t index = player ? *(const uint32_t *)(player + PLAYER_WEAPON_INDEX) : 5;
+    if (index > 4 || !*(const void *const *)(player + PLAYER_WEAPONS + index * 4))
+      return;
+  }
+  ((void (*)(void *, int, int))AT(OFF_HUD_ACTION))(hud, action, param);
 }
 
 /* What the touch screen's "look" pad (an InputForwarderTouchDPad of
@@ -95,7 +123,7 @@ void ds_engine_look(void *hud, float dx, float dy) {
   } ev = {(const void *)(AT(OFF_VECTOR2_VTABLE) + 8), 0x3ee, 3, dx, dy, 0};
   if (!hud)
     return;
-  void **player = *(void ***)(*(uint8_t **)((uint8_t *)hud + HUD_WORLD) + WORLD_HUD_PLAYER);
+  void **player = hud_player(hud);
   if (!player)
     return;
   int (*on_event)(void *, const void *) = ((int (**)(void *, const void *))*player)[2];

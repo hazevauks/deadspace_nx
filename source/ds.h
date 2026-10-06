@@ -79,6 +79,9 @@ void *ds_engine_hud(void); /* the HUD while a level is loaded, else NULL */
 /* 0 while the level is being played; else the RIG, the pause menu, the
  * store... are on the screen (Hud::isPaused, Hud::isInRig) */
 int ds_engine_hud_state(const void *hud);
+/* 1: something in the level has taken the input (a power node lock asking
+ * its question, a bench, a store, a cinematic) */
+int ds_engine_input_taken(const void *hud);
 void ds_engine_action(void *hud, int action, int param);
 /* The camera turned as a finger dragged dx, dy pixels on the screen would. */
 void ds_engine_look(void *hud, float dx, float dy);
@@ -97,6 +100,9 @@ JNI_H_DECL(ds_h_stream_read);
 JNI_H_DECL(ds_h_stream_skip);
 JNI_H_DECL(ds_h_stream_close);
 
+/* ds_gl.c: the window's alpha kept at 1, before each frame of the engine's */
+void ds_gl_frame_begin(void);
+
 /* ds_game.c */
 int ds_game_run(void);
 void ds_game_request_exit(void); /* Activity.finish() */
@@ -108,6 +114,26 @@ void ds_audio_pause(int paused);
 void ds_audio_shutdown(void);
 uint32_t ds_audio_blocks(void);
 JNI_H_DECL(ds_h_track_write);
+
+/* ds_cursor.c: what the port draws over the frame */
+void ds_cursor_init(int width, int height);
+void ds_cursor_set(int show, int x, int y); /* the menus' pointer */
+void ds_cursor_mark(int on);                /* motion aiming went on / off */
+/* An RGBA picture as a texture (0: the overlay is not there). Only from the
+ * frame's present hook, where the GL context is current. */
+unsigned ds_overlay_texture(const uint8_t *rgba, int width, int height, int nearest);
+
+/* ds_menu.c: the port's own settings, over the game (+ and - together) */
+int ds_menu_is_open(void);
+void ds_menu_toggle(int width, int height);
+void ds_menu_input(uint64_t held, float dt); /* the buttons held this frame */
+void ds_menu_draw(void);                     /* from the present hook */
+
+/* ds_gyro.c: motion aiming */
+void ds_gyro_init(void);
+/* The pixels to look by for dt seconds of the controller's motion; 0 when
+ * there is no sensor to read. */
+int ds_gyro_read(int handheld, uint64_t style, float dt, float *dx, float *dy);
 
 /* ds_input.c */
 void ds_input_init(void);

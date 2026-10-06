@@ -11,7 +11,18 @@ Process:
 
 ## Ready for changelog
 
-(nothing yet)
+For 0.2.0 (written; not yet tested on hardware):
+
+- [ ] Fixed: a crash to the HOME menu when aiming with the plasma saw before
+      the first weapon is picked up.
+- [ ] Fixed: static over the protagonist's head (and a grain over the suit)
+      in the hallucinations, from the second chapter on.
+- [ ] The pointer also comes up for what a level asks in the middle of play
+      (spending a power node on a lock, the bench, the store): A chooses
+      under it, B answers no.
+- [ ] The port's own settings screen, + and - together: camera sensitivity,
+      motion aiming, its sensitivity and directions, saved to config.ini.
+- [ ] + (pause) and - (the RIG) now act when the button is let go.
 
 ## Released
 
