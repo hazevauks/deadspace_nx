@@ -8,11 +8,9 @@ console game (`com.eamobile.deadspace_full_azn`, versionCode
 `runtime/`, commit `50b352c`).
 
 State: **playable on hardware.** The game starts, loads its first level and
-runs at 60 fps at 720p (handheld, stock clocks) with sound. The controller
-was confirmed on hardware: moving, the camera, aiming, firing, interacting,
-the menus' pointer (weapon change and the zero-gravity jump not yet tried).
-Motion aiming is written and not yet tested; its directions are a guess
-(`[motion] invert_*`).
+runs at 60 fps at 720p (handheld, stock clocks) with sound. The controller,
+the menus' pointer and motion aiming were confirmed on hardware, handheld.
+Released as 0.1.0; `docs/release-completion.md` has what is left.
 
 ## The game
 

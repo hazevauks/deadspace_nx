@@ -20,8 +20,9 @@ An unofficial Nintendo Switch wrapper for the Android version of
 
 The port is called *Dead Space: Sabotage* so that it is not taken for the 2008
 console game: this is the mobile one, by IronMonkey Studios. It is built on
-the [android32](https://github.com/aks796/android32) runtime, and it is a work
-in progress: see [NOTES.md](NOTES.md) for its state.
+the [android32](https://github.com/aks796/android32) runtime. It is an early
+release: [docs/release-completion.md](docs/release-completion.md) lists what
+is done and what is not, [NOTES.md](NOTES.md) how it works.
 
 The port is a wrapper: it loads the game's own code from your APK and gives
 it what it expects from Android. **No game files are included.** You need
@@ -87,7 +88,9 @@ option is explained in the file.
 
 ## Reporting a problem
 
-Send `debug.log` (and `crash.log`, if there is one) from the game's folder.
+Open an issue with `debug.log` (and `crash.log`, if there is one) from the
+game's folder. The logs carry an identifier of the port's install on your
+console.
 
 ## Building
 
