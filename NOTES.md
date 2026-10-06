@@ -139,8 +139,21 @@ Most become an `ActionEvent` (type `0x3f0`) for `GameObjectPlayable::onEvent`:
   hallucination's full-screen static (`FSDementiaEffect`) is blended by
   destination alpha. The game's Java asks for an RGB 565 window, where
   destination alpha reads 1; the Switch's window is RGBA 8888, so the
-  static would show wherever something translucent had been drawn. The port
-  now keeps the window's alpha at 1 (`ds_gl.c`).
+  static would show wherever something translucent had been drawn. Mesa's
+  EGL offers no window without alpha here, so the port changes the blend
+  factors instead (`ds_gl.c`): on the window, `GL_DST_ALPHA` is 1 and
+  `GL_ONE_MINUS_DST_ALPHA` is 0. The log says so the first time such a blend
+  is asked for.
+  The first way tried (alpha held off with `glColorMask`, and cleared to 1
+  before each frame) faulted on hardware while the game loaded, twice out of
+  two starts, in the loading threads: a model that loaded as nothing
+  (`ModelCache::loadNodeUncached+0x168`) and an allocation of 1.2 GB. Nothing
+  else in that build ran before the title screen. Why is not known: with the
+  mask, every clear of the window is a masked one, which Mesa draws as a
+  rectangle instead of clearing.
+- newlib's `sbrk` here does not see a request that wraps the address space:
+  the 1.2 GB one above was granted and `malloc` faulted writing past 4 GB,
+  where a null return was due.
 - **A question in the middle of a level** (a power node lock) could only be
   answered yes. Such objects take the HUD's input (`Hud::objectGetInput`:
   `hud+676` becomes 2; also the bench, the store, cinematics); the pointer

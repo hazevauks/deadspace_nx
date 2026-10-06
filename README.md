@@ -1,6 +1,4 @@
-| + | pause |
-| − | the RIG (inventory) |
-| + and − together | the port's settings |<div align="center">
+<div align="center">
 
 <img src="banner.webp" alt="Dead Space: Sabotage" width="640">
 
@@ -71,6 +69,7 @@ To remove it, delete `sd:/switch/deadspace_nx/` and the folder under
 | D-pad up / down | melee / locator |
 | + | pause |
 | − | the RIG (inventory) |
+| + and − together | the port's settings |
 | Touch screen | as on a phone (handheld) |
 
 In the menus (the title screens, the pause menu, the RIG, the store, a

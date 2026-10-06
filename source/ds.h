@@ -100,8 +100,8 @@ JNI_H_DECL(ds_h_stream_read);
 JNI_H_DECL(ds_h_stream_skip);
 JNI_H_DECL(ds_h_stream_close);
 
-/* ds_gl.c: the window's alpha kept at 1, before each frame of the engine's */
-void ds_gl_frame_begin(void);
+/* ds_gl.c: around the port's own drawing, whose blend is not the engine's */
+void ds_gl_overlay(int on);
 
 /* ds_game.c */
 int ds_game_run(void);
