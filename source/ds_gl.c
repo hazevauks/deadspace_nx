@@ -19,9 +19,8 @@
  *    what change: while the window is the target, GL_DST_ALPHA is 1 and
  *    GL_ONE_MINUS_DST_ALPHA is 0, which is what Mesa itself does for a
  *    surface without alpha. A framebuffer object keeps what the engine
- *    asked for. (The first way tried, glColorMask's alpha held off and the
- *    alpha cleared to 1 each frame, is gone: that build faulted on hardware
- *    while the game loaded.) MIT.
+ *    asked for. Nothing is done per frame, and no clear becomes a masked
+ *    one, as holding glColorMask's alpha off would have it. MIT.
  */
 #include <stdint.h>
 #include <string.h>

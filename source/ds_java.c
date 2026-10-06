@@ -15,6 +15,7 @@
  * MIT.
  */
 #include <string.h>
+#include <switch.h>
 
 #include "config.h"
 #include "dcr_path.h"
@@ -200,8 +201,60 @@ const char *const jni_missing_classes[] = {
     NULL,
 };
 
+/* -------------------------------------------------------------- monitors */
+/* JNIEnv's MonitorEnter and MonitorExit, which the runtime answers without
+ * locking anything. The engine needs them real: both of its
+ * AssetManagerJNI::Read (EA::IO's and rw::core::filesys's, its only uses of
+ * a monitor) read every file through one shared byte[] of 64 KB, held by
+ * its monitor from InputStream.read() to GetByteArrayRegion(). Without the
+ * lock two loading threads read each other's bytes: a model that loads as
+ * nothing, a size of a gigabyte, a fault somewhere in the loader at
+ * start-up, on some starts and not on others.
+ * One lock for each object locked, found by its address; they are few and
+ * are never let go. */
+#define JNI_MONITOR_ENTER 217 /* JNINativeInterface's slots */
+#define JNI_MONITOR_EXIT 218
+#define MAX_MONITORS 16
+
+static struct {
+  const void *obj;
+  RMutex lock;
+} g_monitors[MAX_MONITORS];
+static int g_nmonitors;
+static Mutex g_monitors_lock;
+
+static RMutex *monitor_of(const void *obj) {
+  mutexLock(&g_monitors_lock);
+  int i = 0;
+  while (i < g_nmonitors && g_monitors[i].obj != obj)
+    i++;
+  if (i == MAX_MONITORS) {
+    i--; /* more objects than locks: the last one is shared */
+  } else if (i == g_nmonitors) {
+    g_monitors[i].obj = obj;
+    rmutexInit(&g_monitors[i].lock);
+    g_nmonitors++;
+    debugPrintf("[java] a monitor for %p\n", obj);
+  }
+  mutexUnlock(&g_monitors_lock);
+  return &g_monitors[i].lock;
+}
+
+static int monitor_enter(void *env, void *obj) {
+  rmutexLock(monitor_of(obj));
+  return 0;
+}
+
+static int monitor_exit(void *env, void *obj) {
+  rmutexUnlock(monitor_of(obj));
+  return 0;
+}
+
 void ds_java_init(void) {
   jni_init();
+  void **env = *(void ***)g_jni_env; /* the function table */
+  env[JNI_MONITOR_ENTER] = (void *)monitor_enter;
+  env[JNI_MONITOR_EXIT] = (void *)monitor_exit;
   g_activity = jni_singleton("com/eamobile/deadspace_full_azn/DeadSpaceActivity");
   debugPrintf("[java] DeadSpaceActivity %p\n", (void *)g_activity);
 }

@@ -144,13 +144,16 @@ Most become an `ActionEvent` (type `0x3f0`) for `GameObjectPlayable::onEvent`:
   factors instead (`ds_gl.c`): on the window, `GL_DST_ALPHA` is 1 and
   `GL_ONE_MINUS_DST_ALPHA` is 0. The log says so the first time such a blend
   is asked for.
-  The first way tried (alpha held off with `glColorMask`, and cleared to 1
-  before each frame) faulted on hardware while the game loaded, twice out of
-  two starts, in the loading threads: a model that loaded as nothing
-  (`ModelCache::loadNodeUncached+0x168`) and an allocation of 1.2 GB. Nothing
-  else in that build ran before the title screen. Why is not known: with the
-  mask, every clear of the window is a masked one, which Mesa draws as a
-  rectangle instead of clearing.
+- **A fault while the game loads, on some starts** (0.1.0, and every start of
+  the first 0.2.0 builds on the test console): a model that loads as nothing
+  (`ModelCache::loadNodeUncached+0x168`), garbage in `Loader::loadObject3D`,
+  an allocation of 1.2 GB. Both `AssetManagerJNI::Read` of the engine read
+  through one shared `byte[]` of 64 KB, locked with `MonitorEnter` from
+  `InputStream.read()` to `GetByteArrayRegion()`; the runtime's monitors lock
+  nothing, so two loading threads read each other's bytes. The port gives the
+  JNI table real ones (`ds_java.c`). The build tested before 0.1.0 logged the
+  first 400 files opened, which kept the threads apart; the release took the
+  log out and was not run again. Release what was run.
 - newlib's `sbrk` here does not see a request that wraps the address space:
   the 1.2 GB one above was granted and `malloc` faulted writing past 4 GB,
   where a null return was due.
@@ -180,6 +183,8 @@ mipmapped filtering on every texture.
   native returns). About 1 MB; it grows slowly while playing.
 - Where saves go (`GetAppDataDirectory` answers `/data/data/<package>/files`,
   which the runtime maps to `data/` in the game folder).
+- The runtime's `MonitorEnter` / `MonitorExit` do nothing: worth reporting
+  upstream (android32). The port replaces them.
 - `Java_com_ea_EAThread_EAThread_Init` and `rwfilesystem.Startup` are not
   called (no caller found in the Java).
 

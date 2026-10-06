@@ -13,6 +13,8 @@ Process:
 
 For 0.2.0 (written; not yet tested on hardware):
 
+- [ ] Fixed: a crash while the game loads, on some starts (two loading
+      threads read each other's files).
 - [ ] Fixed: a crash to the HOME menu when aiming with the plasma saw before
       the first weapon is picked up.
 - [ ] Fixed: static over the protagonist's head (and a grain over the suit)
