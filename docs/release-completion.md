@@ -11,20 +11,20 @@ Process:
 
 ## Ready for changelog
 
-For 0.2.0 (written; not yet tested on hardware):
+For 0.2.0 (checked lines: tested on hardware, handheld):
 
-- [ ] Fixed: a crash while the game loads, on some starts (two loading
+- [x] Fixed: a crash while the game loads, on some starts (two loading
       threads read each other's files).
-- [ ] Fixed: a crash to the HOME menu when aiming with the plasma saw before
+- [x] Fixed: a crash to the HOME menu when aiming with the plasma saw before
       the first weapon is picked up.
-- [ ] Fixed: static over the protagonist's head (and a grain over the suit)
-      in the hallucinations, from the second chapter on.
-- [ ] The pointer also comes up for what a level asks in the middle of play
+- [ ] Fixed: static in place of the protagonist's hair in the hallucinations,
+      from the second chapter on (textures without mipmaps were not drawn).
+- [x] The pointer also comes up for what a level asks in the middle of play
       (spending a power node on a lock, the bench, the store): A chooses
       under it, B answers no.
-- [ ] The port's own settings screen, + and - together: camera sensitivity,
+- [x] The port's own settings screen, + and - together: camera sensitivity,
       motion aiming, its sensitivity and directions, saved to config.ini.
-- [ ] + (pause) and - (the RIG) now act when the button is let go.
+- [x] + (pause) and - (the RIG) now act when the button is let go.
 
 ## Released
 

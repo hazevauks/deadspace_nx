@@ -100,9 +100,6 @@ JNI_H_DECL(ds_h_stream_read);
 JNI_H_DECL(ds_h_stream_skip);
 JNI_H_DECL(ds_h_stream_close);
 
-/* ds_gl.c: around the port's own drawing, whose blend is not the engine's */
-void ds_gl_overlay(int on);
-
 /* ds_game.c */
 int ds_game_run(void);
 void ds_game_request_exit(void); /* Activity.finish() */

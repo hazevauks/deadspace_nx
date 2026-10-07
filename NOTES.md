@@ -11,8 +11,7 @@ State: **playable on hardware.** The game starts, loads its first level and
 runs at 60 fps at 720p (handheld, stock clocks) with sound. The controller,
 the menus' pointer and motion aiming were confirmed on hardware, handheld.
 Released as 0.1.0; `docs/release-completion.md` has what is left and what
-0.2.0 brings (three fixes from players' reports and a settings screen, not
-yet tested on hardware).
+0.2.0 brings (fixes from players' reports and a settings screen).
 
 ## The game
 
@@ -133,17 +132,19 @@ Most become an `ActionEvent` (type `0x3f0`) for `GameObjectPlayable::onEvent`:
   action without a weapon in hand, as the touch screen has no aim button
   then.
 - **Static on the protagonist's head in the hallucinations** (second chapter:
-  `DementiaIdentity` swaps the helmet for `carrie_head.m3g`, whose hair is an
-  RGBA texture drawn blended). The textures were decoded and are sound, and
-  no GL error is logged. The likely cause, to be confirmed on hardware: the
-  hallucination's full-screen static (`FSDementiaEffect`) is blended by
-  destination alpha. The game's Java asks for an RGB 565 window, where
-  destination alpha reads 1; the Switch's window is RGBA 8888, so the
-  static would show wherever something translucent had been drawn. Mesa's
-  EGL offers no window without alpha here, so the port changes the blend
-  factors instead (`ds_gl.c`): on the window, `GL_DST_ALPHA` is 1 and
-  `GL_ONE_MINUS_DST_ALPHA` is 0. The log says so the first time such a blend
-  is asked for.
+  `DementiaIdentity` swaps the helmet for `carrie_head.m3g`). Its hair is a
+  dense mesh of cards with a 512 x 512 RGBA texture, alpha-tested at 0.5
+  (`CompositingMode`: replace, threshold 128), its `Texture2D` filters both
+  linear: `GL_LINEAR_MIPMAP_LINEAR`. `Image2D::set` keeps one level for
+  every format but some compressed ones, so the GL gets level 0 alone under
+  a mipmap filter: an incomplete texture, which GLES 1 does not apply. Mesa
+  follows that (`update_ff_texture_state` leaves the unit off): the cards
+  were drawn whole and untextured, lit grey, which is the "static". The port
+  now sets `GL_TEXTURE_MAX_LEVEL` to the levels a texture was given
+  (`ds_gl.c`). To be confirmed on hardware. Any other single-level texture on
+  a model had the same fault.
+  Two earlier guesses were wrong: the textures are sound, and the game never
+  blends by destination alpha (a build that logged such blends logged none).
 - **A fault while the game loads, on some starts** (0.1.0, and every start of
   the first 0.2.0 builds on the test console): a model that loads as nothing
   (`ModelCache::loadNodeUncached+0x168`), garbage in `Loader::loadObject3D`,

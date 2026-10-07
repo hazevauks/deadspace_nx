@@ -6,21 +6,19 @@
  *    calls these; each says so once if it does, instead of the fault an
  *    unresolved import would be.
  *
- * 2. The window's alpha. The game's Java asks for an RGB 565 screen
- *    (AndroidView's ConfigChooser: 5, 6, 5, 0): a framebuffer without alpha,
- *    whose "destination alpha" reads 1 whatever was drawn. The Switch's
- *    window is RGBA 8888 (the one format Mesa's EGL offers here), and
- *    everything blended into it leaves its own alpha behind. The game's
- *    hallucinations draw a screen of static with a blend that depends on
- *    destination alpha: on a phone an even tint, here static wherever
- *    something translucent had been drawn (the unhelmeted head's hair, in
- *    the second chapter).
- *    Destination alpha is seen through the blend factors alone, so those are
- *    what change: while the window is the target, GL_DST_ALPHA is 1 and
- *    GL_ONE_MINUS_DST_ALPHA is 0, which is what Mesa itself does for a
- *    surface without alpha. A framebuffer object keeps what the engine
- *    asked for. Nothing is done per frame, and no clear becomes a masked
- *    one, as holding glColorMask's alpha off would have it. MIT.
+ * 2. Textures of a single level. The engine keeps a mipmap chain for some
+ *    compressed formats only; every other image (RGBA 8888 among them) is
+ *    uploaded as level 0 alone, with whatever filter its model asks for,
+ *    and the models ask for mipmaps on every texture. To the GL that is an
+ *    incomplete texture, which by the book is not applied at all. Mesa goes
+ *    by the book; the game's phones, evidently, sampled the level there
+ *    is. So the
+ *    hair of the unhelmeted head (the hallucinations of the second chapter:
+ *    512 x 512 RGBA, alpha-tested) was drawn without its texture: every
+ *    card of it whole, in the grey its lighting gives it.
+ *    Here a texture is told how many levels it has: GL_TEXTURE_MAX_LEVEL is
+ *    0 when level 0 is uploaded, and unbounded again when level 1 follows.
+ *    MIT.
  */
 #include <stdint.h>
 #include <string.h>
@@ -49,87 +47,52 @@ const DynLibFunction port_imports[] = {
 };
 const int port_imports_count = sizeof port_imports / sizeof port_imports[0];
 
-/* ------------------------------------------------------- the window's alpha */
-#define GL_ZERO 0
-#define GL_ONE 1
-#define GL_DST_ALPHA 0x0304
-#define GL_ONE_MINUS_DST_ALPHA 0x0305
-#define GL_SRC_ALPHA_SATURATE 0x0308
-#define GL_FRAMEBUFFER 0x8D40
+/* ------------------------------------------- textures of a single level */
+#define GL_TEXTURE_2D 0x0DE1
+#define GL_TEXTURE_MAX_LEVEL 0x813D /* GL_APPLE_texture_max_level, which Mesa lists */
+#define ALL_LEVELS 1000             /* its default */
 
-static void (*r_blend_func)(unsigned, unsigned);
-static void (*r_blend_func_separate)(unsigned, unsigned, unsigned, unsigned);
-static void (*r_bind_framebuffer)(unsigned, unsigned);
+static void (*r_tex_image)(unsigned, int, int, int, int, int, unsigned, unsigned, const void *);
+static void (*r_compressed_tex_image)(unsigned, int, unsigned, int, int, int, int, const void *);
+static void (*r_tex_parameteri)(unsigned, unsigned, int);
 
-/* What the engine asked for last (source and destination: colour, then
- * alpha), and where it draws. */
-static unsigned g_blend[4] = {GL_ONE, GL_ZERO, GL_ONE, GL_ZERO};
-static int g_separate;
-static unsigned g_fbo;
-static int g_overlay; /* the port's own drawing: passed through, not kept */
-
-/* A factor as a framebuffer without alpha has it. */
-static unsigned opaque(unsigned factor) {
-  return factor == GL_DST_ALPHA                                                  ? GL_ONE
-         : factor == GL_ONE_MINUS_DST_ALPHA || factor == GL_SRC_ALPHA_SATURATE ? GL_ZERO
-                                                                                 : factor;
-}
-
-static void apply_blend(void) {
-  unsigned f[4];
-  int changed = 0;
-  for (int i = 0; i < 4; i++) {
-    f[i] = g_fbo ? g_blend[i] : opaque(g_blend[i]);
-    changed |= f[i] != g_blend[i];
-  }
+/* After level 0 or 1 of the bound texture was given. */
+static void levels(unsigned target, int level) {
   static int said;
-  if (changed && !said++)
-    debugPrintf("[gl] a blend by the window's alpha (0x%x, 0x%x): taken as 1, as a phone's screen has none\n",
-                g_blend[0], g_blend[1]);
-  if (g_separate && r_blend_func_separate)
-    r_blend_func_separate(f[0], f[1], f[2], f[3]);
-  else if (r_blend_func)
-    r_blend_func(f[0], f[1]);
-}
-
-static void w_blend_func(unsigned src, unsigned dst) {
-  if (g_overlay) {
-    r_blend_func(src, dst);
+  if (target != GL_TEXTURE_2D || level > 1)
     return;
-  }
-  g_blend[0] = g_blend[2] = src, g_blend[1] = g_blend[3] = dst;
-  g_separate = 0;
-  apply_blend();
-}
-
-static void w_blend_func_separate(unsigned src, unsigned dst, unsigned src_alpha, unsigned dst_alpha) {
-  if (g_overlay) {
-    r_blend_func_separate(src, dst, src_alpha, dst_alpha);
+  if (!r_tex_parameteri) /* not looked up yet: the lookup comes through port_gl_wrap */
+    dcr_gl_lookup("glTexParameteri");
+  if (!r_tex_parameteri)
     return;
-  }
-  g_blend[0] = src, g_blend[1] = dst, g_blend[2] = src_alpha, g_blend[3] = dst_alpha;
-  g_separate = 1;
-  apply_blend();
+  if (!said++)
+    debugPrintf("[gl] textures are sampled from the levels they were given (GL_TEXTURE_MAX_LEVEL)\n");
+  r_tex_parameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, level ? ALL_LEVELS : 0);
 }
 
-static void w_bind_framebuffer(unsigned target, unsigned fbo) {
-  r_bind_framebuffer(target, fbo);
-  if (target == GL_FRAMEBUFFER && !fbo != !g_fbo) { /* to or from the window */
-    g_fbo = fbo;
-    apply_blend();
-  }
+static void w_tex_image(unsigned target, int level, int internal, int width, int height, int border,
+                        unsigned format, unsigned type, const void *pixels) {
+  r_tex_image(target, level, internal, width, height, border, format, type, pixels);
+  levels(target, level);
 }
 
-/* The runtime's callback: every lookup of these goes through the wrappers
- * above, the engine's imports and the overlay's own (ds_gl_overlay). */
+static void w_compressed_tex_image(unsigned target, int level, unsigned internal, int width, int height,
+                                   int border, int size, const void *data) {
+  r_compressed_tex_image(target, level, internal, width, height, border, size, data);
+  levels(target, level);
+}
+
+/* The runtime's callback, for every GL function looked up (the engine's
+ * imports, the overlay's): the two uploads go through the wrappers above;
+ * glTexParameteri is only taken note of. */
 uintptr_t port_gl_wrap(const char *name, uintptr_t real) {
   static const struct {
     const char *name;
     void *slot, *wrapper;
   } k_wraps[] = {
-      {"glBlendFunc", &r_blend_func, w_blend_func},
-      {"glBlendFuncSeparateOES", &r_blend_func_separate, w_blend_func_separate},
-      {"glBindFramebufferOES", &r_bind_framebuffer, w_bind_framebuffer},
+      {"glTexImage2D", &r_tex_image, w_tex_image},
+      {"glCompressedTexImage2D", &r_compressed_tex_image, w_compressed_tex_image},
+      {"glTexParameteri", &r_tex_parameteri, NULL},
   };
   if (!real)
     return 0;
@@ -140,7 +103,3 @@ uintptr_t port_gl_wrap(const char *name, uintptr_t real) {
     }
   return 0;
 }
-
-/* Around what the port draws over the frame (ds_cursor.c): the overlay sets
- * its own blend and puts the engine's back as it read it from the GL. */
-void ds_gl_overlay(int on) { g_overlay = on; }

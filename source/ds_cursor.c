@@ -91,7 +91,6 @@ static void paint(int pic, uint8_t *img) {
 /* The present hook: on the thread whose GL context it is. */
 static void draw(void) {
   static uint8_t img[SIZE * SIZE * 4];
-  ds_gl_overlay(1);
   if ((g_show || g_mark_frames > 0) && overlay_ready()) {
     if (!g_tex[0])
       for (int i = 0; i < PICS; i++) {
@@ -107,7 +106,6 @@ static void draw(void) {
     }
   }
   ds_menu_draw();
-  ds_gl_overlay(0);
 }
 
 void ds_cursor_init(int width, int height) {
