@@ -133,18 +133,18 @@ Most become an `ActionEvent` (type `0x3f0`) for `GameObjectPlayable::onEvent`:
   then.
 - **Static on the protagonist's head in the hallucinations** (second chapter:
   `DementiaIdentity` swaps the helmet for `carrie_head.m3g`). Its hair is a
-  dense mesh of cards with a 512 x 512 RGBA texture, alpha-tested at 0.5
-  (`CompositingMode`: replace, threshold 128), its `Texture2D` filters both
-  linear: `GL_LINEAR_MIPMAP_LINEAR`. `Image2D::set` keeps one level for
-  every format but some compressed ones, so the GL gets level 0 alone under
-  a mipmap filter: an incomplete texture, which GLES 1 does not apply. Mesa
-  follows that (`update_ff_texture_state` leaves the unit off): the cards
-  were drawn whole and untextured, lit grey, which is the "static". The port
-  now sets `GL_TEXTURE_MAX_LEVEL` to the levels a texture was given
-  (`ds_gl.c`). To be confirmed on hardware. Any other single-level texture on
-  a model had the same fault.
-  Two earlier guesses were wrong: the textures are sound, and the game never
-  blends by destination alpha (a build that logged such blends logged none).
+  512 x 512 RGBA texture of fine strands, alpha-tested at 0.5
+  (`CompositingMode`: replace, threshold 128), on a head a hundred pixels
+  wide; its `Texture2D` filters are both linear, which the renderer sets as
+  `GL_LINEAR_MIPMAP_LINEAR` (with `glTexParameterx`). `Image2D::set` keeps
+  one level for every format but some compressed ones, so the GL gets level
+  0 alone under a mipmap filter. The port now has the GL make the mipmaps
+  of such textures (`ds_gl.c`; the log names the first 160). To be confirmed
+  on hardware.
+  Three earlier guesses were wrong: the textures are sound; the game never
+  blends by destination alpha (a build that logged such blends logged
+  none); and limiting the texture to level 0 (`GL_TEXTURE_MAX_LEVEL`), which
+  makes it complete, changed nothing to the eye.
 - **A fault while the game loads, on some starts** (0.1.0, and every start of
   the first 0.2.0 builds on the test console): a model that loads as nothing
   (`ModelCache::loadNodeUncached+0x168`), garbage in `Loader::loadObject3D`,

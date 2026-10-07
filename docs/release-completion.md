@@ -18,7 +18,7 @@ For 0.2.0 (checked lines: tested on hardware, handheld):
 - [x] Fixed: a crash to the HOME menu when aiming with the plasma saw before
       the first weapon is picked up.
 - [ ] Fixed: static in place of the protagonist's hair in the hallucinations,
-      from the second chapter on (textures without mipmaps were not drawn).
+      from the second chapter on (the mipmaps the game leaves out are made).
 - [x] The pointer also comes up for what a level asks in the middle of play
       (spending a power node on a lock, the bench, the store): A chooses
       under it, B answers no.
