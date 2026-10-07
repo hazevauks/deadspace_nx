@@ -312,10 +312,7 @@ static void poll_pad(int width, int height) {
     if (!(buttons & both))
       g_combo = 0;
   }
-  if ((down & HidNpadButton_StickL) && (buttons & HidNpadButton_StickR)) {
-    ds_trace_request(); /* with the right stick held: a frame's report (ds_trace.c) */
-    ds_cursor_mark(1);
-  } else if (down & HidNpadButton_StickL) { /* motion aiming on / off, kept for the next start */
+  if (down & HidNpadButton_StickL) { /* motion aiming on / off, kept for the next start */
     DcrConfig *cfg = dcr_config_edit();
     cfg->gyro = !cfg->gyro;
     ds_cursor_mark(cfg->gyro);

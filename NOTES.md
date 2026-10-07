@@ -10,8 +10,8 @@ console game (`com.eamobile.deadspace_full_azn`, versionCode
 State: **playable on hardware.** The game starts, loads its first level and
 runs at 60 fps at 720p (handheld, stock clocks) with sound. The controller,
 the menus' pointer and motion aiming were confirmed on hardware, handheld.
-Released as 0.1.0; `docs/release-completion.md` has what is left and what
-0.2.0 brings (fixes from players' reports and a settings screen).
+Released as 0.1.0 and 0.1.5; `docs/release-completion.md` has what each
+brought and what is left.
 
 ## The game
 
@@ -132,7 +132,8 @@ Most become an `ActionEvent` (type `0x3f0`) for `GameObjectPlayable::onEvent`:
   action without a weapon in hand, as the touch screen has no aim button
   then.
 - **Static in place of the protagonist's helmet** in the room of the second
-  chapter with the mirror, where stasis is found. **Open.** The room is
+  chapter with the mirror, where stasis is found. **Open, and set aside:** it
+  does not stop the game, and leaving and coming back clears it. The room is
   `DementiaDoppleganger`'s: it duplicates the nodes of the player's model
   for the figure in the mirror (`Object3D::duplicate`,
   `Model::duplicateAppearances`), hides two appearances on the copy
@@ -141,15 +142,15 @@ Most become an `ActionEvent` (type `0x3f0`) for `GameObjectPlayable::onEvent`:
   `switchToCarrieHead` (the head without it, `carrie_head.m3g`) answers one
   animation trigger, `switch_to_carrie_head`, which only the last cinematic
   has (`isaac.bin`: `FINAL_CINEMATIC_SUCCESS`).
-  Wrong guesses so far, each tried on hardware: a blend by destination alpha
-  (the game makes none); the unhelmeted head's hair as an incomplete
-  texture, then as one without mipmaps (it is not what is drawn there).
-  What came of the last one stays, as it is right in itself: a texture given
-  one level under a mipmap filter gets its mipmaps from the GL (`ds_gl.c`).
-  Next: a frame's report from that room (`ds_trace.c`: the right stick held,
-  a click of the left one; a picture and the list of the frame's draws).
+  Wrong guesses, each tried on hardware and taken out again: a blend by
+  destination alpha (the game makes none); the unhelmeted head's hair as an
+  incomplete texture, then as one without mipmaps (it is not what is drawn
+  there). `ds_gl.c` still has the first of them, the blend factors, because
+  0.1.5 is the build that was run with it: it does nothing, as no such blend
+  is asked for. To find the cause, list one frame's draws in that room (the
+  textures of both units, the tests, the blend) next to a picture of it.
 - **A fault while the game loads, on some starts** (0.1.0, and every start of
-  the first 0.2.0 builds on the test console): a model that loads as nothing
+  the first builds after it on the test console): a model that loads as nothing
   (`ModelCache::loadNodeUncached+0x168`), garbage in `Loader::loadObject3D`,
   an allocation of 1.2 GB. Both `AssetManagerJNI::Read` of the engine read
   through one shared `byte[]` of 64 KB, locked with `MonitorEnter` from

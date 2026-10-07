@@ -10,7 +10,7 @@ An unofficial Nintendo Switch wrapper for the Android version of
 **Dead Space** (2011), the mobile game also known as *Dead Space: Sabotage*.
 
 [![Switch](https://img.shields.io/badge/Nintendo_Switch-Homebrew-E60012?style=for-the-badge&logo=nintendoswitch&logoColor=white)](#)
-[![Version](https://img.shields.io/badge/Version-0.2.0-4C8BF5?style=for-the-badge)](#)
+[![Version](https://img.shields.io/badge/Version-0.1.5-4C8BF5?style=for-the-badge)](#)
 [![ARM32](https://img.shields.io/badge/Android-armeabi_(32--bit)-3DDC84?style=for-the-badge&logo=android&logoColor=white)](#)
 [![Downloads](https://img.shields.io/github/downloads/hazevauks/deadspace_nx/total?style=for-the-badge&label=Downloads&color=8A2BE2)](https://github.com/hazevauks/deadspace_nx/releases)
 
@@ -98,10 +98,6 @@ start. Each option is explained in the file.
 Open an issue with `debug.log` (and `crash.log`, if there is one) from the
 game's folder. The logs carry an identifier of the port's install on your
 console.
-
-For a picture that is wrong, hold the right stick down and click the left one
-where it shows: the frame is saved as `capture-NNN.bmp` in the game's folder
-and described in `debug.log`. Send both.
 
 ## Building
 

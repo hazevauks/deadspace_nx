@@ -11,22 +11,24 @@ Process:
 
 ## Ready for changelog
 
-For 0.2.0 (checked lines: tested on hardware, handheld):
+Nothing yet.
+
+## Released
+
+### 0.1.5
+
+Tested on hardware, handheld:
 
 - [x] Fixed: a crash while the game loads, on some starts (two loading
       threads read each other's files).
 - [x] Fixed: a crash to the HOME menu when aiming with the plasma saw before
       the first weapon is picked up.
-- [ ] A frame's report for graphics problems: the right stick held, a click
-      of the left one saves a picture and lists the frame's draws in the log.
 - [x] The pointer also comes up for what a level asks in the middle of play
       (spending a power node on a lock, the bench, the store): A chooses
       under it, B answers no.
 - [x] The port's own settings screen, + and - together: camera sensitivity,
       motion aiming, its sensitivity and directions, saved to config.ini.
 - [x] + (pause) and - (the RIG) now act when the button is let go.
-
-## Released
 
 ### 0.1.0
 
@@ -47,7 +49,8 @@ Tested on hardware, handheld, 720p, stock clocks:
 ## Carry forward
 
 - [ ] Static in place of the protagonist's helmet in the mirror room of the
-      second chapter (where stasis is found): cause not found yet.
+      second chapter (where stasis is found): cause not found
+      (it does not stop the game; leaving and coming back clears it).
 - [ ] Docked 1080p, a Pro Controller and a detached pair of Joy-Cons have had
       little or no play testing (the gyroscope's directions among them).
 - [ ] Weapon change on the D-pad and the zero-gravity jump: little tested.

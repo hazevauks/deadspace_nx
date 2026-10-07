@@ -100,6 +100,9 @@ JNI_H_DECL(ds_h_stream_read);
 JNI_H_DECL(ds_h_stream_skip);
 JNI_H_DECL(ds_h_stream_close);
 
+/* ds_gl.c: around the port's own drawing, whose blend is not the engine's */
+void ds_gl_overlay(int on);
+
 /* ds_game.c */
 int ds_game_run(void);
 void ds_game_request_exit(void); /* Activity.finish() */
@@ -111,14 +114,6 @@ void ds_audio_pause(int paused);
 void ds_audio_shutdown(void);
 uint32_t ds_audio_blocks(void);
 JNI_H_DECL(ds_h_track_write);
-
-/* ds_trace.c: a frame's picture and the list of its draws, in the log */
-void ds_trace_request(void); /* the next frame */
-void ds_trace_frame(void);   /* before each of the engine's frames */
-uintptr_t ds_trace_wrap(const char *name, uintptr_t real);
-/* What a texture was given: a level's size and format (flags: 1 compressed,
- * 2 no pixels); level -1: its mipmaps were made by the GL. */
-void ds_trace_texture(unsigned name, int level, int width, int height, unsigned format, int flags);
 
 /* ds_cursor.c: what the port draws over the frame */
 void ds_cursor_init(int width, int height);
