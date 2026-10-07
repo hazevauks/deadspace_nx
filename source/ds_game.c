@@ -215,6 +215,7 @@ int ds_game_run(void) {
       continue;
     }
     ds_input_poll(g_w, g_h);
+    ds_trace_frame();
     g_n.OnDrawFrame(ENV, SELF);
     b_eglSwapBuffers(g_dpy, g_surf);
 

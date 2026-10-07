@@ -111,6 +111,7 @@ static void make_mipmaps(unsigned name, int width, int height) {
       debugPrintf("[gl] texture %u: a mipmap filter on its one level, mipmaps made\n", name);
   }
   g_tex[name] = T_MADE;
+  ds_trace_texture(name, -1, 0, 0, 0, 0);
 }
 
 static void w_tex_image(unsigned target, int level, int internal, int width, int height, int border,
@@ -119,6 +120,7 @@ static void w_tex_image(unsigned target, int level, int internal, int width, int
   if (target != GL_TEXTURE_2D || !ready())
     return;
   const unsigned name = bound();
+  ds_trace_texture(name, level, width, height, (unsigned)internal, pixels ? 0 : 2);
   if (!name || name >= MAX_NAMES)
     return;
   if (level) { /* the engine has its own levels for this one */
@@ -151,9 +153,12 @@ static void w_tex_sub_image(unsigned target, int level, int x, int y, int width,
 static void w_compressed_tex_image(unsigned target, int level, unsigned internal, int width, int height,
                                    int border, int size, const void *data) {
   r_compressed_tex_image(target, level, internal, width, height, border, size, data);
-  if (target != GL_TEXTURE_2D || level > 1 || !ready())
+  if (target != GL_TEXTURE_2D || !ready())
     return;
   const unsigned name = bound();
+  ds_trace_texture(name, level, width, height, internal, 1);
+  if (level > 1)
+    return;
   if (name && name < MAX_NAMES)
     g_tex[name] = T_UNKNOWN;
   r_tex_parameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, level ? ALL_LEVELS : 0);
@@ -211,6 +216,9 @@ uintptr_t port_gl_wrap(const char *name, uintptr_t real) {
   };
   if (!real)
     return 0;
+  const uintptr_t traced = ds_trace_wrap(name, real); /* the draws: ds_trace.c */
+  if (traced)
+    return traced;
   for (unsigned i = 0; i < sizeof k_wraps / sizeof k_wraps[0]; i++)
     if (!strcmp(name, k_wraps[i].name)) {
       memcpy(k_wraps[i].slot, &real, sizeof real);

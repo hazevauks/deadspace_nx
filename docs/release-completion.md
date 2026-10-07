@@ -17,8 +17,8 @@ For 0.2.0 (checked lines: tested on hardware, handheld):
       threads read each other's files).
 - [x] Fixed: a crash to the HOME menu when aiming with the plasma saw before
       the first weapon is picked up.
-- [ ] Fixed: static in place of the protagonist's hair in the hallucinations,
-      from the second chapter on (the mipmaps the game leaves out are made).
+- [ ] A frame's report for graphics problems: the right stick held, a click
+      of the left one saves a picture and lists the frame's draws in the log.
 - [x] The pointer also comes up for what a level asks in the middle of play
       (spending a power node on a lock, the bench, the store): A chooses
       under it, B answers no.
@@ -46,6 +46,8 @@ Tested on hardware, handheld, 720p, stock clocks:
 
 ## Carry forward
 
+- [ ] Static in place of the protagonist's helmet in the mirror room of the
+      second chapter (where stasis is found): cause not found yet.
 - [ ] Docked 1080p, a Pro Controller and a detached pair of Joy-Cons have had
       little or no play testing (the gyroscope's directions among them).
 - [ ] Weapon change on the D-pad and the zero-gravity jump: little tested.

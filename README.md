@@ -99,6 +99,10 @@ Open an issue with `debug.log` (and `crash.log`, if there is one) from the
 game's folder. The logs carry an identifier of the port's install on your
 console.
 
+For a picture that is wrong, hold the right stick down and click the left one
+where it shows: the frame is saved as `capture-NNN.bmp` in the game's folder
+and described in `debug.log`. Send both.
+
 ## Building
 
 GitHub Actions builds every push (`.github/workflows/build.yml`); the

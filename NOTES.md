@@ -131,20 +131,23 @@ Most become an `ActionEvent` (type `0x3f0`) for `GameObjectPlayable::onEvent`:
   is null): a fault at `setAiming+0xd4`. The port no longer sends the aim
   action without a weapon in hand, as the touch screen has no aim button
   then.
-- **Static on the protagonist's head in the hallucinations** (second chapter:
-  `DementiaIdentity` swaps the helmet for `carrie_head.m3g`). Its hair is a
-  512 x 512 RGBA texture of fine strands, alpha-tested at 0.5
-  (`CompositingMode`: replace, threshold 128), on a head a hundred pixels
-  wide; its `Texture2D` filters are both linear, which the renderer sets as
-  `GL_LINEAR_MIPMAP_LINEAR` (with `glTexParameterx`). `Image2D::set` keeps
-  one level for every format but some compressed ones, so the GL gets level
-  0 alone under a mipmap filter. The port now has the GL make the mipmaps
-  of such textures (`ds_gl.c`; the log names the first 160). To be confirmed
-  on hardware.
-  Three earlier guesses were wrong: the textures are sound; the game never
-  blends by destination alpha (a build that logged such blends logged
-  none); and limiting the texture to level 0 (`GL_TEXTURE_MAX_LEVEL`), which
-  makes it complete, changed nothing to the eye.
+- **Static in place of the protagonist's helmet** in the room of the second
+  chapter with the mirror, where stasis is found. **Open.** The room is
+  `DementiaDoppleganger`'s: it duplicates the nodes of the player's model
+  for the figure in the mirror (`Object3D::duplicate`,
+  `Model::duplicateAppearances`), hides two appearances on the copy
+  (`isaac_health_4_bars`, `isaac_stasis_gauge`) and keeps its animation in
+  step (`GameObjectPlayable::syncAnim`). The helmet is not swapped there:
+  `switchToCarrieHead` (the head without it, `carrie_head.m3g`) answers one
+  animation trigger, `switch_to_carrie_head`, which only the last cinematic
+  has (`isaac.bin`: `FINAL_CINEMATIC_SUCCESS`).
+  Wrong guesses so far, each tried on hardware: a blend by destination alpha
+  (the game makes none); the unhelmeted head's hair as an incomplete
+  texture, then as one without mipmaps (it is not what is drawn there).
+  What came of the last one stays, as it is right in itself: a texture given
+  one level under a mipmap filter gets its mipmaps from the GL (`ds_gl.c`).
+  Next: a frame's report from that room (`ds_trace.c`: the right stick held,
+  a click of the left one; a picture and the list of the frame's draws).
 - **A fault while the game loads, on some starts** (0.1.0, and every start of
   the first 0.2.0 builds on the test console): a model that loads as nothing
   (`ModelCache::loadNodeUncached+0x168`), garbage in `Loader::loadObject3D`,
